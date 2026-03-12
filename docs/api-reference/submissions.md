@@ -49,9 +49,11 @@ GET https://api.pdfcanon.io/api/submissions/{submissionId}
 
 | Status | Description |
 |---|---|
-| `processing` | Job is currently being processed |
-| `completed` | Normalization succeeded |
-| `failed` | Normalization failed (see `error` field) |
+| `PENDING` | Job is queued, not yet started |
+| `IN_PROGRESS` | Job is currently being processed |
+| `SUCCESS` | Normalization succeeded |
+| `FAILED` | Normalization failed (see `failure` field) |
+| `REJECTED` | Document rejected by policy (e.g. signed PDF, encrypted) |
 
 ## Error responses
 

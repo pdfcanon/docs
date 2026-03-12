@@ -1,0 +1,79 @@
+---
+sidebar_position: 7
+title: Digital Signatures
+description: How PDFCanon handles digitally signed PDFs.
+---
+
+# Digital Signatures
+
+Digitally signed PDFs are legally sensitive artifacts. PDFCanon uses a **detect → reject by default → explicit override** policy to ensure you never accidentally destroy a signature without intending to.
+
+## Default behavior: reject
+
+By default, PDFCanon **rejects** any PDF that contains digital signatures. Normalization modifies the byte structure of the document, which invalidates any existing digital signature. Silent removal would destroy evidence.
+
+When a signed PDF is submitted, the response is:
+
+```json
+{
+  "status": "REJECTED",
+  "failure": {
+    "code": "SIGNED_PDF",
+    "message": "PDF contains digital signatures which would be invalidated by normalization.",
+    "stage": null
+  }
+}
+```
+
+## Detection
+
+PDFCanon detects signatures by inspecting:
+
+- `/AcroForm` signature fields (`/Sig`, `/Signature`)
+- `/ByteRange` and `/Contents` dictionary entries
+- Document-level signature dictionaries (`/DocMDP`, `/FieldMDP`)
+
+## Signature handling modes
+
+You can override the default reject behavior by passing a policy option. The available modes are:
+
+| Mode | Behavior |
+|---|---|
+| `reject` (default) | Reject signed PDFs and return a REJECTED status |
+| `strip` | Remove signature fields and proceed with normalization. Returns a `SIGNATURE_REMOVED` warning. |
+| `preserve` | Return the original file without normalization. Useful for inspection-only workflows. |
+
+:::caution Strip mode
+Always use strip mode explicitly and intentionally. The removal of digital signatures is a destructive, irreversible operation. PDFCanon will never silently strip signatures.
+:::
+
+### Strip mode response
+
+When strip mode is used, normalization proceeds and the response includes a warning:
+
+```json
+{
+  "status": "SUCCESS",
+  "warnings": [
+    {
+      "code": "SIGNATURE_REMOVED",
+      "message": "Digital signatures were removed during normalization."
+    }
+  ]
+}
+```
+
+## Why reject-by-default?
+
+- Digital signatures are legally binding artifacts
+- Normalization rewrites document byte structure, which always invalidates signatures
+- Silent removal could destroy evidence in legal, compliance, or archival contexts
+- Explicit intent prevents accidental data destruction
+
+Most document security systems reject signed documents by default. PDFCanon follows this convention.
+
+## Tamper detection and signatures
+
+Even when a signed PDF is rejected, tamper analysis runs before rejection and is reflected in the response. An `ORPHANED_SIGNATURE_FIELD` anomaly may be detected when a signature field exists but has no valid binding — this can indicate document tampering.
+
+See [POST /api/normalize](/api-reference/normalize) for the full `tamperAnalysis` response schema.

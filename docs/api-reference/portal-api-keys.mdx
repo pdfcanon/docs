@@ -1,0 +1,226 @@
+---
+sidebar_position: 6
+title: Portal — API Keys
+description: Create, list, and revoke API keys for your organization.
+---
+
+# Portal — API Keys
+
+API keys authenticate your application to the normalization and artifact endpoints. You can create multiple keys for different environments or integrations and rotate them without downtime.
+
+All portal endpoints require a JWT Bearer token. See [Authentication](/authentication) for how to obtain one.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## GET /api/portal/api-keys
+
+List all API keys for your organization.
+
+### Request
+
+```
+GET https://api.pdfcanon.io/api/portal/api-keys
+Authorization: Bearer <access_token>
+```
+
+### Response (200 OK)
+
+Returns an array of `ApiKeyResponse` objects.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | uuid | Key identifier |
+| `name` | string | Display name |
+| `keyPrefix` | string | First few characters of the key (e.g. `pdfn_abc1...`) |
+| `scopes` | string[] | Granted scopes (`normalize`, `read`) |
+| `isActive` | boolean | Whether the key is active |
+| `expiresAt` | datetime (nullable) | Expiration timestamp, if set |
+| `lastUsedAt` | datetime (nullable) | Timestamp of the last authenticated request |
+| `createdAt` | datetime | Creation timestamp |
+
+:::note
+The full key value is never returned after creation. Store it immediately when you create a key.
+:::
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl https://api.pdfcanon.io/api/portal/api-keys \
+  -H "Authorization: Bearer eyJ..."
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/portal/api-keys', {
+  headers: { Authorization: `Bearer ${accessToken}` },
+});
+
+const keys = await response.json();
+keys.forEach(k => console.log(k.name, k.keyPrefix, k.scopes));
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import httpx
+
+resp = httpx.get(
+    "https://api.pdfcanon.io/api/portal/api-keys",
+    headers={"Authorization": f"Bearer {access_token}"},
+)
+resp.raise_for_status()
+for key in resp.json():
+    print(key["name"], key["keyPrefix"], key["scopes"])
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/portal/api-keys
+
+Create a new API key.
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/portal/api-keys
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ | Display name for the key |
+| `scopes` | string[] | ✅ | Array of scopes: `"normalize"` and/or `"read"` |
+| `expiresAt` | datetime (nullable) | No | Optional expiration date |
+
+### Response (200 OK)
+
+Returns a `CreateApiKeyResponse` object.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | uuid | Key identifier |
+| `name` | string | Display name |
+| `keyPrefix` | string | First few characters of the key |
+| `scopes` | string[] | Granted scopes |
+| `expiresAt` | datetime (nullable) | Expiration timestamp |
+| `createdAt` | datetime | Creation timestamp |
+| `fullKey` | string | **The full secret key — shown only once. Store it securely.** |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/portal/api-keys \
+  -H "Authorization: Bearer eyJ..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Production",
+    "scopes": ["normalize", "read"]
+  }'
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/portal/api-keys', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ name: 'Production', scopes: ['normalize', 'read'] }),
+});
+
+const { fullKey } = await response.json();
+console.log('Store this key — it will not be shown again:', fullKey);
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+resp = httpx.post(
+    "https://api.pdfcanon.io/api/portal/api-keys",
+    headers={"Authorization": f"Bearer {access_token}"},
+    json={"name": "Production", "scopes": ["normalize", "read"]},
+)
+resp.raise_for_status()
+full_key = resp.json()["fullKey"]
+print("Store this key — it will not be shown again:", full_key)
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## DELETE /api/portal/api-keys/\{id\}
+
+Revoke an API key immediately. Any requests using the revoked key will return `401`.
+
+### Request
+
+```
+DELETE https://api.pdfcanon.io/api/portal/api-keys/{id}
+Authorization: Bearer <access_token>
+```
+
+| Parameter | Description |
+|---|---|
+| `id` | UUID of the key to revoke |
+
+### Response
+
+| Status | Description |
+|---|---|
+| `200` | Key revoked |
+| `404` | Key not found |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X DELETE https://api.pdfcanon.io/api/portal/api-keys/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer eyJ..."
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+await fetch(`https://api.pdfcanon.io/api/portal/api-keys/${keyId}`, {
+  method: 'DELETE',
+  headers: { Authorization: `Bearer ${accessToken}` },
+});
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## Key rotation workflow
+
+To rotate an API key without downtime:
+
+1. Create a new key with the same scopes
+2. Copy the `fullKey` value and update your application configuration
+3. Deploy the updated configuration
+4. Verify the new key is working (check `lastUsedAt`)
+5. Delete the old key

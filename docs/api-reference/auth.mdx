@@ -1,0 +1,401 @@
+---
+sidebar_position: 5
+title: Auth Endpoints
+description: Register, log in, refresh tokens, and manage passwords.
+---
+
+# Auth Endpoints
+
+These endpoints manage account registration, login, session tokens, and password resets. Auth endpoints use standard JSON request/response bodies and do not require an API key — they are used to obtain JWT Bearer tokens for portal management endpoints.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+## POST /api/auth/register
+
+Register a new organization and owner account. Sends an email verification link to the owner's email address.
+
+**Rate limit:** 3 requests / hour / IP
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/register
+Content-Type: application/json
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `orgName` | string | ✅ | Display name for the organization |
+| `orgSlug` | string | ✅ | URL-safe identifier for the organization |
+| `ownerEmail` | string (email) | ✅ | Email address for the owner account |
+| `ownerPassword` | string | ✅ | Password (minimum 8 characters) |
+| `captchaToken` | string | No | CAPTCHA verification token |
+
+### Responses
+
+| Status | Description |
+|---|---|
+| `200` | Organization and owner created; verification email sent |
+| `400` | Validation error (invalid email, slug taken, weak password) |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orgName": "Acme Corp",
+    "orgSlug": "acme",
+    "ownerEmail": "admin@acme.com",
+    "ownerPassword": "s3cur3passw0rd"
+  }'
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/auth/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orgName: 'Acme Corp',
+    orgSlug: 'acme',
+    ownerEmail: 'admin@acme.com',
+    ownerPassword: 's3cur3passw0rd',
+  }),
+});
+
+if (!response.ok) throw new Error(`Registration failed: ${response.status}`);
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import httpx
+
+resp = httpx.post(
+    "https://api.pdfcanon.io/api/auth/register",
+    json={
+        "orgName": "Acme Corp",
+        "orgSlug": "acme",
+        "ownerEmail": "admin@acme.com",
+        "ownerPassword": "s3cur3passw0rd",
+    },
+)
+resp.raise_for_status()
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/auth/login
+
+Authenticate with email and password. Returns a short-lived JWT access token and sets an HttpOnly refresh cookie.
+
+**Rate limit:** 5 requests / 15 min / IP
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/login
+Content-Type: application/json
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `email` | string (email) | ✅ | Account email address |
+| `password` | string | ✅ | Account password |
+
+### Response (200 OK)
+
+| Field | Type | Description |
+|---|---|---|
+| `access_token` | string | Short-lived JWT access token |
+| `token_type` | string | Always `"Bearer"` |
+| `expires_in` | integer | Token lifetime in seconds |
+
+An HttpOnly `refresh_token` cookie is also set.
+
+| Status | Description |
+|---|---|
+| `200` | Login successful; access token returned |
+| `401` | Invalid email or password |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/login \
+  -H "Content-Type: application/json" \
+  -c cookies.txt \
+  -d '{
+    "email": "admin@acme.com",
+    "password": "s3cur3passw0rd"
+  }'
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({ email: 'admin@acme.com', password: 's3cur3passw0rd' }),
+});
+
+if (!response.ok) throw new Error('Login failed');
+const { access_token } = await response.json();
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import httpx
+
+client = httpx.Client()  # use a client to persist cookies
+resp = client.post(
+    "https://api.pdfcanon.io/api/auth/login",
+    json={"email": "admin@acme.com", "password": "s3cur3passw0rd"},
+)
+resp.raise_for_status()
+access_token = resp.json()["access_token"]
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/auth/refresh
+
+Exchange the HttpOnly refresh cookie for a new short-lived access token. No request body is required — the refresh token is read from the cookie.
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/refresh
+```
+
+The HttpOnly `refresh_token` cookie must be present (set during login).
+
+### Response (200 OK)
+
+Returns the same structure as login: `access_token`, `token_type`, `expires_in`.
+
+| Status | Description |
+|---|---|
+| `200` | New access token issued |
+| `401` | Refresh token missing, invalid, or expired |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/refresh \
+  -b cookies.txt \
+  -c cookies.txt
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/auth/refresh', {
+  method: 'POST',
+  credentials: 'include',
+});
+
+if (!response.ok) throw new Error('Token refresh failed — re-authenticate');
+const { access_token } = await response.json();
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/auth/logout
+
+Invalidate the current session. Clears the refresh cookie.
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/logout
+Authorization: Bearer <access_token>
+```
+
+### Response
+
+| Status | Description |
+|---|---|
+| `200` | Session invalidated |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/logout \
+  -H "Authorization: Bearer eyJ..." \
+  -b cookies.txt
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+await fetch('https://api.pdfcanon.io/api/auth/logout', {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${accessToken}` },
+  credentials: 'include',
+});
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/auth/forgot-password
+
+Request a password reset email. Always returns `200` to prevent account enumeration — the response does not reveal whether the email address is registered.
+
+**Rate limit:** 3 requests / hour / IP
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/forgot-password
+Content-Type: application/json
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `email` | string (email) | ✅ | Email address to send the reset link to |
+
+### Response
+
+| Status | Description |
+|---|---|
+| `200` | Request accepted (email sent if address is registered) |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@acme.com"}'
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+await fetch('https://api.pdfcanon.io/api/auth/forgot-password', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'admin@acme.com' }),
+});
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+httpx.post(
+    "https://api.pdfcanon.io/api/auth/forgot-password",
+    json={"email": "admin@acme.com"},
+)
+```
+
+</TabItem>
+</Tabs>
+
+---
+
+## POST /api/auth/reset-password
+
+Reset a password using the token delivered in the reset email.
+
+### Request
+
+```
+POST https://api.pdfcanon.io/api/auth/reset-password
+Content-Type: application/json
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `token` | string | ✅ | Password reset token from the email link |
+| `newPassword` | string | ✅ | New password (minimum 8 characters) |
+
+### Response
+
+| Status | Description |
+|---|---|
+| `200` | Password updated |
+| `400` | Token invalid, expired, or new password too short |
+
+### Example
+
+<Tabs>
+<TabItem value="curl" label="cURL">
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "abc123resettoken",
+    "newPassword": "newS3cur3pass!"
+  }'
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```javascript
+const response = await fetch('https://api.pdfcanon.io/api/auth/reset-password', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    token: 'abc123resettoken',
+    newPassword: 'newS3cur3pass!',
+  }),
+});
+
+if (!response.ok) throw new Error('Password reset failed — token may be expired');
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+resp = httpx.post(
+    "https://api.pdfcanon.io/api/auth/reset-password",
+    json={"token": "abc123resettoken", "newPassword": "newS3cur3pass!"},
+)
+resp.raise_for_status()
+```
+
+</TabItem>
+</Tabs>

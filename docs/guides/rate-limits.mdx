@@ -1,0 +1,71 @@
+---
+sidebar_position: 6
+title: Rate Limits
+description: Rate limits for PDFCanon API endpoints.
+---
+
+# Rate Limits
+
+PDFCanon enforces rate limits on authentication and normalization endpoints to protect against abuse and ensure service availability.
+
+## Normalization quota
+
+The `POST /api/normalize` endpoint is subject to a **tier-based monthly document quota** rather than a per-second rate limit.
+
+| Plan | Monthly normalization limit |
+|---|---|
+| Free | 50 documents |
+| Starter | 500 documents |
+| Growth | 5,000 documents |
+| Pro | 50,000 documents |
+
+When the quota is exhausted, the endpoint returns `402 Payment Required`. The quota resets at the start of each billing cycle.
+
+Check your current usage at any time with [GET /api/billing/info](/api-reference/portal-billing#get-apibillinginfo).
+
+## Authentication rate limits
+
+Authentication endpoints use fixed-window IP-based rate limiting to prevent brute-force and enumeration attacks.
+
+| Endpoint | Limit |
+|---|---|
+| `POST /api/auth/register` | 3 requests / hour / IP |
+| `POST /api/auth/login` | 5 requests / 15 min / IP |
+| `POST /api/auth/forgot-password` | 3 requests / hour / IP |
+
+When a rate limit is exceeded, the endpoint returns `429 Too Many Requests`.
+
+## Handling rate limit errors
+
+When you receive a `429` response, wait before retrying. Use the `Retry-After` header if present.
+
+```python
+import httpx, time
+
+def login_with_retry(email, password, max_attempts=3):
+    for attempt in range(max_attempts):
+        resp = httpx.post(
+            "https://api.pdfcanon.io/api/auth/login",
+            json={"email": email, "password": password},
+        )
+        if resp.status_code == 429:
+            retry_after = int(resp.headers.get("Retry-After", 60))
+            time.sleep(retry_after)
+            continue
+        resp.raise_for_status()
+        return resp.json()["access_token"]
+    raise RuntimeError("Rate limit exceeded after retries")
+```
+
+## Idempotency and retries
+
+For normalization requests, use idempotency keys to safely retry without consuming additional quota:
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/normalize \
+  -H "X-Api-Key: pdfn_your_api_key_here" \
+  -F "file=@input.pdf" \
+  -F "idempotency_key=my-unique-job-id-123"
+```
+
+A request with the same `idempotency_key` and identical file will return the cached result without consuming quota or reprocessing the document. See [Idempotency](/guides/idempotency) for details.

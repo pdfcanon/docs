@@ -26,7 +26,10 @@ const sidebars: SidebarsConfig = {
         'guides/idempotency',
         'guides/bulk-processing',
         'guides/error-handling',
+        'guides/rate-limits',
         'guides/data-retention',
+        'guides/digital-signatures',
+        'guides/pdfa-compliance',
       ],
     },
     {
@@ -37,6 +40,10 @@ const sidebars: SidebarsConfig = {
         'api-reference/submissions',
         'api-reference/artifacts',
         'api-reference/reports',
+        'api-reference/auth',
+        'api-reference/portal-api-keys',
+        'api-reference/portal-billing',
+        'api-reference/portal-organization',
       ],
     },
     {

@@ -6,7 +6,7 @@ description: Normalize a PDF document.
 
 # POST /api/normalize
 
-Normalize a PDF document through the PDFCanon pipeline. Returns the canonical PDF and a structured result object.
+Normalize a PDF document through the PDFCanon pipeline. Returns a structured result object with full schema details about the normalization, tamper analysis, security changes, and validation.
 
 ## Request
 
@@ -14,92 +14,183 @@ Normalize a PDF document through the PDFCanon pipeline. Returns the canonical PD
 POST https://api.pdfcanon.io/api/normalize
 ```
 
+**Content-Type:** `multipart/form-data`
+
 ### Headers
 
 | Header | Required | Description |
 |---|---|---|
 | `X-Api-Key` | ✅ | Your API key (`pdfn_...`) |
-| `Content-Type` | ✅ | Must be `application/pdf` |
-| `Idempotency-Key` | Optional | Idempotency key for safe retries |
-| `Prefer` | Optional | Set to `respond-async` for async processing |
-| `X-Stateless` | Optional | Set to `true` to disable artifact persistence |
 
-### Body
+### Form fields
 
-Raw PDF file bytes (`application/pdf`).
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `file` | binary | ✅ | — | The PDF file to normalize |
+| `linearize` | boolean | No | `true` | Linearize (web-optimize) the output PDF. Set `false` to skip. |
+| `remove_annotations` | boolean | No | `false` | Remove all PDF annotations |
+| `region` | string | No | org default | Target S3 storage region (`ca-central-1`, `us-east-2`, `eu-central-1`) |
+| `webhook_url` | string (uri) | No | — | Optional HTTPS URL to receive a completion webhook |
+| `idempotency_key` | string | No | — | Client-supplied idempotency key for safe retries |
 
-## Response
+## Responses
 
-### Success (200 OK)
+### 200 OK — Synchronously normalized (small PDFs)
 
-The normalized PDF is returned in the response body. Response headers include:
+Returns a [`NormalizeResponse`](#normalizeresponse-schema) JSON object.
 
-| Header | Description |
+### 202 Accepted — Accepted for async processing
+
+Returns a [`NormalizeResponse`](#normalizeresponse-schema) JSON object with `status: "PENDING"` or `"IN_PROGRESS"`. Poll [`GET /api/submissions/{id}`](/api-reference/submissions) until status is `SUCCESS` or `FAILED`.
+
+### Error responses
+
+| Status | Description |
 |---|---|
-| `X-Submission-Id` | The submission ID |
-| `X-Output-Hash` | SHA-256 hash of the normalized output |
-| `X-Processing-Time-Ms` | Processing time in milliseconds |
-| `X-Api-Version` | API version string |
+| `400` | Validation error or invalid/disallowed region |
+| `401` | Invalid or missing API key |
+| `402` | Monthly quota exceeded |
 
-### Response body (JSON, with `Accept: application/json`)
+## NormalizeResponse schema
+
+```
+NormalizeResponse
+├── apiVersion        string       e.g. "2026-01-01"
+├── requestId         string       unique request ID
+├── submissionId      uuid
+├── processingTimeMs  int64
+├── status            enum         PENDING | IN_PROGRESS | SUCCESS | FAILED | REJECTED
+├── original          OriginalInfo
+│   ├── sha256        string       SHA-256 hex digest of the original file
+│   └── sizeBytes     int64
+├── normalized        NormalizedInfo  (nullable — null until processing completes)
+│   ├── sha256        string
+│   ├── sizeBytes     int64
+│   ├── pdfVersion    string       e.g. "1.7"
+│   ├── linearized    boolean      whether output was linearized (web-optimized)
+│   └── downloadUrl   string (uri) presigned URL to download the artifact
+├── security          SecurityInfo  (what was removed)
+│   ├── javascriptRemoved          boolean
+│   ├── openActionsRemoved         boolean
+│   ├── embeddedFilesRemoved       boolean
+│   ├── richMediaRemoved           boolean
+│   ├── launchActionsRemoved       boolean
+│   ├── incrementalUpdatesRemoved  boolean
+│   ├── acroformFlattened          boolean
+│   ├── annotationsRemoved         boolean
+│   └── encryptedInput             boolean  (was the original encrypted?)
+├── validation        ValidationInfo  (structural repair)
+│   ├── xrefRebuilt                boolean
+│   ├── objectStreamsRegenerated   boolean
+│   ├── brokenReferencesDetected  boolean
+│   ├── nonEmbeddedFontsDetected  boolean
+│   └── pdfaCompliant              boolean
+├── tamperAnalysis    TamperAnalysis  (nullable — null until processing completes)
+│   ├── riskLevel     enum         none | low | medium | high | critical
+│   ├── anomaliesDetected  int
+│   └── anomalies[]   TamperAnomaly
+│       ├── type      enum         INCREMENTAL_UPDATE_INJECTION | POST_EOF_DATA |
+│       │                          HEADER_VERSION_MISMATCH | SHADOW_CONTENT_DETECTED |
+│       │                          ORPHANED_SIGNATURE_FIELD
+│       ├── severity  enum         low | medium | high | critical
+│       ├── description  string
+│       └── location  string (nullable)  e.g. "Byte offset 1847293"
+├── warnings[]        WarningInfo
+│   ├── code          string       e.g. NON_EMBEDDED_FONT
+│   └── message       string
+└── failure           FailureInfo  (nullable)
+    ├── code          string       e.g. POLICY_REJECTION
+    ├── message       string
+    └── stage         string (nullable)  pipeline stage where failure occurred
+```
+
+### Full response example (SUCCESS)
 
 ```json
 {
   "apiVersion": "2026-01-01",
-  "requestId": "req_01jk...",
-  "submissionId": "sub_01jk...",
+  "requestId": "req_01jk4m2n3p5q6r7s",
+  "submissionId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "processingTimeMs": 342,
-  "status": "completed",
+  "status": "SUCCESS",
   "original": {
-    "sizeBytes": 102400,
-    "sha256": "sha256:aabbcc...",
-    "pdfaLevel": null
+    "sha256": "aabbccdd...",
+    "sizeBytes": 102400
   },
-  "output": {
+  "normalized": {
+    "sha256": "ddeeff00...",
     "sizeBytes": 98304,
-    "sha256": "sha256:ddeeff...",
-    "pdfaLevel": "2b",
-    "downloadUrl": "https://api.pdfcanon.io/api/artifacts/ddeeff..."
+    "pdfVersion": "1.7",
+    "linearized": true,
+    "downloadUrl": "https://api.pdfcanon.io/api/artifacts/ddeeff00..."
   },
   "security": {
-    "tamperDetection": {
-      "detected": false,
-      "findings": []
-    },
-    "digitalSignatures": {
-      "found": 0,
-      "policy": "remove"
-    }
+    "javascriptRemoved": true,
+    "openActionsRemoved": false,
+    "embeddedFilesRemoved": true,
+    "richMediaRemoved": false,
+    "launchActionsRemoved": false,
+    "incrementalUpdatesRemoved": true,
+    "acroformFlattened": false,
+    "annotationsRemoved": false,
+    "encryptedInput": false
   },
   "validation": {
-    "verapdfValidated": true,
-    "verapdfErrors": []
+    "xrefRebuilt": false,
+    "objectStreamsRegenerated": true,
+    "brokenReferencesDetected": false,
+    "nonEmbeddedFontsDetected": true,
+    "pdfaCompliant": false
   },
-  "warnings": []
+  "tamperAnalysis": {
+    "riskLevel": "high",
+    "anomaliesDetected": 2,
+    "anomalies": [
+      {
+        "type": "INCREMENTAL_UPDATE_INJECTION",
+        "severity": "high",
+        "description": "Document contains 7 incremental updates with conflicting page content",
+        "location": "Byte offset 1847293"
+      },
+      {
+        "type": "POST_EOF_DATA",
+        "severity": "low",
+        "description": "Data found after PDF EOF marker",
+        "location": null
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "code": "NON_EMBEDDED_FONT",
+      "message": "Font 'Arial' is not embedded in the document"
+    }
+  ],
+  "failure": null
 }
 ```
 
-### Async response (202 Accepted)
-
-When using `Prefer: respond-async`:
+### Async response example (PENDING)
 
 ```json
 {
-  "submissionId": "sub_01jk...",
-  "status": "processing"
+  "apiVersion": "2026-01-01",
+  "requestId": "req_01jk4m2n3p5q6r7s",
+  "submissionId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "processingTimeMs": 0,
+  "status": "PENDING",
+  "original": {
+    "sha256": "aabbccdd...",
+    "sizeBytes": 102400
+  },
+  "normalized": null,
+  "security": {},
+  "validation": {},
+  "tamperAnalysis": null,
+  "warnings": [],
+  "failure": null
 }
 ```
-
-## Error responses
-
-| Status | Type | Description |
-|---|---|---|
-| `400` | `invalid-request` | Malformed PDF or missing required headers |
-| `401` | `unauthorized` | Invalid or missing API key |
-| `409` | `idempotency-conflict` | Idempotency key used with different body |
-| `413` | `payload-too-large` | PDF exceeds maximum size |
-| `422` | `normalization-failed` | PDF could not be normalized (permanent failure) |
-| `429` | `quota-exceeded` | Monthly normalization quota exceeded |
 
 ## Code examples
 
@@ -112,29 +203,45 @@ import TabItem from '@theme/TabItem';
 ```bash
 curl -X POST https://api.pdfcanon.io/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
-  -H "Content-Type: application/pdf" \
-  --data-binary @input.pdf \
-  -o normalized.pdf
+  -F "file=@input.pdf" \
+  -F "linearize=true"
+```
+
+To skip linearization:
+
+```bash
+curl -X POST https://api.pdfcanon.io/api/normalize \
+  -H "X-Api-Key: pdfn_your_api_key_here" \
+  -F "file=@input.pdf" \
+  -F "linearize=false"
 ```
 
 </TabItem>
 <TabItem value="node" label="Node.js">
 
 ```javascript
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
+import FormData from 'form-data';
 
-const pdf = readFileSync('input.pdf');
+const form = new FormData();
+form.append('file', readFileSync('input.pdf'), 'input.pdf');
+form.append('linearize', 'true');
+
 const response = await fetch('https://api.pdfcanon.io/api/normalize', {
   method: 'POST',
   headers: {
     'X-Api-Key': process.env.PDFCANON_API_KEY,
-    'Content-Type': 'application/pdf',
+    ...form.getHeaders(),
   },
-  body: pdf,
+  body: form,
 });
 
 if (!response.ok) throw new Error(`Normalization failed: ${response.status}`);
-writeFileSync('normalized.pdf', Buffer.from(await response.arrayBuffer()));
+
+const result = await response.json();
+console.log('Status:', result.status);
+console.log('Tamper risk:', result.tamperAnalysis?.riskLevel ?? 'n/a');
+console.log('Download URL:', result.normalized?.downloadUrl);
 ```
 
 </TabItem>
@@ -144,20 +251,19 @@ writeFileSync('normalized.pdf', Buffer.from(await response.arrayBuffer()));
 import httpx
 
 with open("input.pdf", "rb") as f:
-    pdf_bytes = f.read()
+    resp = httpx.post(
+        "https://api.pdfcanon.io/api/normalize",
+        headers={"X-Api-Key": "pdfn_your_api_key_here"},
+        files={"file": ("input.pdf", f, "application/pdf")},
+        data={"linearize": "true"},
+    )
 
-resp = httpx.post(
-    "https://api.pdfcanon.io/api/normalize",
-    content=pdf_bytes,
-    headers={
-        "X-Api-Key": "pdfn_your_api_key_here",
-        "Content-Type": "application/pdf",
-    },
-)
 resp.raise_for_status()
+result = resp.json()
 
-with open("normalized.pdf", "wb") as f:
-    f.write(resp.content)
+print("Status:", result["status"])
+print("Tamper risk:", result.get("tamperAnalysis", {}).get("riskLevel", "n/a"))
+print("Download URL:", result.get("normalized", {}).get("downloadUrl"))
 ```
 
 </TabItem>
@@ -168,13 +274,94 @@ using var client = new HttpClient();
 client.DefaultRequestHeaders.Add("X-Api-Key", "pdfn_your_api_key_here");
 
 var pdf = await File.ReadAllBytesAsync("input.pdf");
-using var content = new ByteArrayContent(pdf);
-content.Headers.ContentType = new("application/pdf");
+using var form = new MultipartFormDataContent();
+form.Add(new ByteArrayContent(pdf) { Headers = { ContentType = new("application/pdf") } }, "file", "input.pdf");
+form.Add(new StringContent("true"), "linearize");
 
-var response = await client.PostAsync("https://api.pdfcanon.io/api/normalize", content);
+var response = await client.PostAsync("https://api.pdfcanon.io/api/normalize", form);
 response.EnsureSuccessStatusCode();
 
-await File.WriteAllBytesAsync("normalized.pdf", await response.Content.ReadAsByteArrayAsync());
+var result = await response.Content.ReadFromJsonAsync<NormalizeResponse>();
+Console.WriteLine($"Status: {result!.Status}");
+Console.WriteLine($"Tamper risk: {result.TamperAnalysis?.RiskLevel ?? "n/a"}");
+Console.WriteLine($"Download URL: {result.Normalized?.DownloadUrl}");
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```java
+import java.nio.file.*;
+import java.net.http.*;
+import java.net.URI;
+
+Path pdfPath = Path.of("input.pdf");
+byte[] boundary = "--PDFCanonBoundary".getBytes();
+
+String body = "--PDFCanonBoundary\r\n" +
+    "Content-Disposition: form-data; name=\"file\"; filename=\"input.pdf\"\r\n" +
+    "Content-Type: application/pdf\r\n\r\n";
+String linearizePart = "\r\n--PDFCanonBoundary\r\n" +
+    "Content-Disposition: form-data; name=\"linearize\"\r\n\r\ntrue\r\n" +
+    "--PDFCanonBoundary--\r\n";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.pdfcanon.io/api/normalize"))
+    .header("X-Api-Key", "pdfn_your_api_key_here")
+    .header("Content-Type", "multipart/form-data; boundary=PDFCanonBoundary")
+    .POST(HttpRequest.BodyPublishers.ofByteArrays(java.util.List.of(
+        body.getBytes(),
+        Files.readAllBytes(pdfPath),
+        linearizePart.getBytes()
+    )))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+</TabItem>
+<TabItem value="go" label="Go">
+
+```go
+package main
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "io"
+    "mime/multipart"
+    "net/http"
+    "os"
+)
+
+func main() {
+    f, _ := os.Open("input.pdf")
+    defer f.Close()
+
+    var buf bytes.Buffer
+    w := multipart.NewWriter(&buf)
+    part, _ := w.CreateFormFile("file", "input.pdf")
+    io.Copy(part, f)
+    w.WriteField("linearize", "true")
+    w.Close()
+
+    req, _ := http.NewRequest("POST", "https://api.pdfcanon.io/api/normalize", &buf)
+    req.Header.Set("X-Api-Key", "pdfn_your_api_key_here")
+    req.Header.Set("Content-Type", w.FormDataContentType())
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var result map[string]any
+    json.NewDecoder(resp.Body).Decode(&result)
+    fmt.Printf("Status: %v\n", result["status"])
+    if ta, ok := result["tamperAnalysis"].(map[string]any); ok {
+        fmt.Printf("Tamper risk: %v\n", ta["riskLevel"])
+    }
+}
 ```
 
 </TabItem>

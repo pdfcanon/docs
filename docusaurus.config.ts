@@ -112,6 +112,7 @@ const config: Config = {
             {label: 'Normalizing PDFs', to: '/guides/normalizing-pdfs'},
             {label: 'Webhooks', to: '/guides/webhooks'},
             {label: 'Error Handling', to: '/guides/error-handling'},
+            {label: 'Rate Limits', to: '/guides/rate-limits'},
             {label: 'Bulk Processing', to: '/guides/bulk-processing'},
           ],
         },

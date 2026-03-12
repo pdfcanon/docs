@@ -1,0 +1,86 @@
+---
+sidebar_position: 8
+title: PDF/A Compliance
+description: How PDFCanon handles PDF/A-compliant archival documents.
+---
+
+# PDF/A Compliance
+
+PDF/A (ISO 19005) is an archival format used by governments, courts, and archives. PDFCanon **preserves declared PDF/A compliance where possible** and rejects operations that would invalidate archival conformance.
+
+## Detection
+
+PDFCanon detects PDF/A compliance declarations in XMP metadata:
+
+```xml
+<pdfaid:part>2</pdfaid:part>
+<pdfaid:conformance>B</pdfaid:conformance>
+```
+
+This indicates **PDF/A-2b**. PDFCanon checks for `pdfaid:part` and `pdfaid:conformance` values to determine the declared compliance level.
+
+:::note
+Many PDFs claim PDF/A compliance in metadata but are not actually conformant. PDFCanon treats declared metadata as **intent**, not verified compliance. Normalization does not guarantee that output is PDF/A-validated unless using the veraPDF integration.
+:::
+
+## Default behavior: preserve
+
+When a PDF/A document is detected, PDFCanon applies **restricted transformations** to avoid breaking compliance:
+
+- Cross-reference table rebuilds and object stream regeneration are safe
+- Incremental update removal is safe
+- XMP metadata normalization preserves the `pdfaid` schema
+- Font operations and structural changes that would break compliance trigger a rejection
+
+If normalization would break PDF/A compliance, the response is:
+
+```json
+{
+  "status": "REJECTED",
+  "failure": {
+    "code": "PDF_A_COMPLIANCE_RISK",
+    "message": "Normalization would invalidate declared PDF/A compliance.",
+    "stage": null
+  }
+}
+```
+
+## Operations that are safe for PDF/A
+
+| Operation | Safe? |
+|---|---|
+| Cross-reference rebuild | ✅ Yes |
+| Object stream regeneration | ✅ Yes |
+| Incremental update removal | ✅ Yes |
+| Metadata normalization (PDF/A schema preserved) | ✅ Yes |
+| JavaScript removal | ✅ Yes |
+| Font embedding (non-breaking additions) | ⚠️ Conditional |
+| Color profile changes | ❌ May break PDF/A |
+| XMP metadata removal | ❌ Breaks PDF/A |
+| Tagged structure removal | ❌ Breaks PDF/A-A/U |
+
+## PDF/A compliance in the response
+
+The `validation.pdfaCompliant` field in `NormalizeResponse` reflects whether the output passed internal compliance checks:
+
+```json
+{
+  "validation": {
+    "xrefRebuilt": false,
+    "objectStreamsRegenerated": true,
+    "brokenReferencesDetected": false,
+    "nonEmbeddedFontsDetected": false,
+    "pdfaCompliant": true
+  }
+}
+```
+
+## veraPDF validation
+
+For plans that include veraPDF integration, post-normalization PDF/A validation is run using the veraPDF open-source validator (MPL 2.0). Results are reflected in the submission record. Contact support for details on veraPDF-enabled plans.
+
+## Relationship with tamper detection
+
+PDF/A documents with multiple incremental revisions may trigger `INCREMENTAL_UPDATE_INJECTION` anomalies during tamper analysis. This is expected for documents with legitimate revision history (e.g. form submissions). Review the anomaly description to determine whether the revisions are expected.
+
+See [POST /api/normalize](/api-reference/normalize) for the full response schema including `tamperAnalysis`.

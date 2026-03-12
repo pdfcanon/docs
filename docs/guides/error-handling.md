@@ -63,10 +63,12 @@ Warnings do not prevent normalization but indicate that the output may differ fr
 
 | Warning code | Description |
 |---|---|
-| `SIGNATURE_INVALIDATED` | Digital signatures were present and could not be preserved |
-| `FONTS_EMBEDDED` | Missing fonts were embedded using substitutes |
-| `METADATA_STRIPPED` | Non-standard metadata was removed during canonicalization |
-| `ACROFORM_FLATTENED` | Interactive form fields were flattened |
+| `NON_EMBEDDED_FONT` | A font referenced in the document is not embedded |
+| `BROKEN_OBJECT_REFERENCE` | One or more object references in the PDF were broken and repaired |
+| `LARGE_DOCUMENT` | Document exceeds the recommended size threshold for optimal processing |
+| `COMPLEX_FORM` | AcroForm structure is complex and may have been partially flattened |
+| `MULTIPLE_REVISIONS` | Document contained multiple incremental update revisions |
+| `CORRUPT_STREAM` | One or more content streams were corrupt and were reconstructed |
 
 ## Retry strategy
 
