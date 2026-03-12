@@ -13,7 +13,7 @@ PDFCanon supports idempotency keys to allow safe retries of normalization reques
 Pass an `Idempotency-Key` header with any `POST /api/normalize` request. If a request with the same key has already been processed, PDFCanon returns the original response rather than re-processing the document.
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -H "Idempotency-Key: order-12345-normalize-v1" \
   -H "Content-Type: application/pdf" \

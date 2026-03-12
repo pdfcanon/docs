@@ -18,7 +18,7 @@ You can subscribe to email or webhook notifications for status changes at [statu
 
 | Component | Description |
 |---|---|
-| API | `api.pdfcanon.io` — normalization and portal endpoints |
+| API | `api.pdfcanon.com` — normalization and portal endpoints |
 | Worker fleet | PDF normalization processing workers |
 | Storage | Artifact storage (S3, multi-region) |
 | Portal | `app.pdfcanon.com` — web dashboard |

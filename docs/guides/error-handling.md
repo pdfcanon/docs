@@ -80,7 +80,7 @@ import time, random, httpx
 def normalize_with_retry(pdf_bytes, api_key, idempotency_key, max_attempts=4):
     for attempt in range(max_attempts):
         resp = httpx.post(
-            "https://api.pdfcanon.io/api/normalize",
+            "https://api.pdfcanon.com/api/normalize",
             content=pdf_bytes,
             headers={
                 "X-Api-Key": api_key,

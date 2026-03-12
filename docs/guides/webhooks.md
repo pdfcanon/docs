@@ -13,7 +13,7 @@ PDFCanon sends webhook events to your endpoint when asynchronous normalization j
 Create a webhook in the portal under **Settings → Webhooks**, or via the API:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/portal/webhooks \
+curl -X POST https://api.pdfcanon.com/api/portal/webhooks \
   -H "Authorization: Bearer eyJ..." \
   -H "Content-Type: application/json" \
   -d '{

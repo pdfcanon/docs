@@ -19,7 +19,7 @@ By default, `POST /api/normalize` processes the document synchronously and retur
 ### Synchronous (default)
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -H "Content-Type: application/pdf" \
   --data-binary @input.pdf \
@@ -29,7 +29,7 @@ curl -X POST https://api.pdfcanon.io/api/normalize \
 ### Asynchronous
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -H "Content-Type: application/pdf" \
   -H "Prefer: respond-async" \
@@ -40,7 +40,7 @@ curl -X POST https://api.pdfcanon.io/api/normalize \
 Then poll for completion:
 
 ```bash
-curl https://api.pdfcanon.io/api/submissions/{submissionId} \
+curl https://api.pdfcanon.com/api/submissions/{submissionId} \
   -H "X-Api-Key: pdfn_your_api_key_here"
 ```
 
@@ -49,7 +49,7 @@ curl https://api.pdfcanon.io/api/submissions/{submissionId} \
 Pass an `Idempotency-Key` header to safely retry requests without double-processing:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -H "Idempotency-Key: my-unique-key-12345" \
   -H "Content-Type: application/pdf" \

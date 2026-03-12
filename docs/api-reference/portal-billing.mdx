@@ -20,7 +20,7 @@ Retrieve billing and subscription details for your organization, including curre
 ### Request
 
 ```
-GET https://api.pdfcanon.io/api/billing/info
+GET https://api.pdfcanon.com/api/billing/info
 Authorization: Bearer <access_token>
 ```
 
@@ -47,7 +47,7 @@ Authorization: Bearer <access_token>
 <TabItem value="curl" label="cURL">
 
 ```bash
-curl https://api.pdfcanon.io/api/billing/info \
+curl https://api.pdfcanon.com/api/billing/info \
   -H "Authorization: Bearer eyJ..."
 ```
 
@@ -55,7 +55,7 @@ curl https://api.pdfcanon.io/api/billing/info \
 <TabItem value="node" label="Node.js">
 
 ```javascript
-const response = await fetch('https://api.pdfcanon.io/api/billing/info', {
+const response = await fetch('https://api.pdfcanon.com/api/billing/info', {
   headers: { Authorization: `Bearer ${accessToken}` },
 });
 
@@ -70,7 +70,7 @@ console.log(`Plan: ${billing.planTier}, Used: ${billing.currentMonthUsage}/${bil
 import httpx
 
 resp = httpx.get(
-    "https://api.pdfcanon.io/api/billing/info",
+    "https://api.pdfcanon.com/api/billing/info",
     headers={"Authorization": f"Bearer {access_token}"},
 )
 resp.raise_for_status()
@@ -90,7 +90,7 @@ Create a Stripe Checkout session to subscribe to or upgrade a plan. Returns a re
 ### Request
 
 ```
-POST https://api.pdfcanon.io/api/billing/checkout-session
+POST https://api.pdfcanon.com/api/billing/checkout-session
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -114,7 +114,7 @@ Content-Type: application/json
 <TabItem value="curl" label="cURL">
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/billing/checkout-session \
+curl -X POST https://api.pdfcanon.com/api/billing/checkout-session \
   -H "Authorization: Bearer eyJ..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -129,7 +129,7 @@ curl -X POST https://api.pdfcanon.io/api/billing/checkout-session \
 <TabItem value="node" label="Node.js">
 
 ```javascript
-const response = await fetch('https://api.pdfcanon.io/api/billing/checkout-session', {
+const response = await fetch('https://api.pdfcanon.com/api/billing/checkout-session', {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${accessToken}`,
@@ -152,7 +152,7 @@ window.location.href = url; // redirect to Stripe Checkout
 
 ```python
 resp = httpx.post(
-    "https://api.pdfcanon.io/api/billing/checkout-session",
+    "https://api.pdfcanon.com/api/billing/checkout-session",
     headers={"Authorization": f"Bearer {access_token}"},
     json={
         "tier": "starter",

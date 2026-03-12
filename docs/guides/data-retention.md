@@ -31,7 +31,7 @@ Enable **stateless mode** to instruct PDFCanon not to persist any input or outpu
 Configure stateless mode in the portal under **Settings → Data Retention**, or pass it per-request:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -H "X-Stateless: true" \
   -H "Content-Type: application/pdf" \
@@ -46,7 +46,7 @@ curl -X POST https://api.pdfcanon.io/api/normalize \
 Request a full export of your organization's data:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/portal/data-export \
+curl -X POST https://api.pdfcanon.com/api/portal/data-export \
   -H "Authorization: Bearer eyJ..."
 ```
 
@@ -55,7 +55,7 @@ curl -X POST https://api.pdfcanon.io/api/portal/data-export \
 Request erasure of a specific document by its content hash:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/portal/erasure \
+curl -X POST https://api.pdfcanon.com/api/portal/erasure \
   -H "Authorization: Bearer eyJ..." \
   -H "Content-Type: application/json" \
   -d '{"contentHash": "sha256:abcd1234..."}'
@@ -66,7 +66,7 @@ curl -X POST https://api.pdfcanon.io/api/portal/erasure \
 Request deletion of your entire account and all associated data. A 72-hour cooling-off period applies:
 
 ```bash
-curl -X DELETE https://api.pdfcanon.io/api/portal/data \
+curl -X DELETE https://api.pdfcanon.com/api/portal/data \
   -H "Authorization: Bearer eyJ..."
 ```
 

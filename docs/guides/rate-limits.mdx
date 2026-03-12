@@ -45,7 +45,7 @@ import httpx, time
 def login_with_retry(email, password, max_attempts=3):
     for attempt in range(max_attempts):
         resp = httpx.post(
-            "https://api.pdfcanon.io/api/auth/login",
+            "https://api.pdfcanon.com/api/auth/login",
             json={"email": email, "password": password},
         )
         if resp.status_code == 429:
@@ -62,7 +62,7 @@ def login_with_retry(email, password, max_attempts=3):
 For normalization requests, use idempotency keys to safely retry without consuming additional quota:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -F "file=@input.pdf" \
   -F "idempotency_key=my-unique-job-id-123"

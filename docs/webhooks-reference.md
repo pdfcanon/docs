@@ -43,7 +43,7 @@ All webhook events share a common envelope:
     "processingTimeMs": 342,
     "outputHash": "sha256:ddeeff...",
     "outputSizeBytes": 98304,
-    "downloadUrl": "https://api.pdfcanon.io/api/artifacts/ddeeff...",
+    "downloadUrl": "https://api.pdfcanon.com/api/artifacts/ddeeff...",
     "warnings": []
   }
 }

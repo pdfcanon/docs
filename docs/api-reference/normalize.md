@@ -11,7 +11,7 @@ Normalize a PDF document through the PDFCanon pipeline. Returns a structured res
 ## Request
 
 ```
-POST https://api.pdfcanon.io/api/normalize
+POST https://api.pdfcanon.com/api/normalize
 ```
 
 **Content-Type:** `multipart/form-data`
@@ -122,7 +122,7 @@ NormalizeResponse
     "sizeBytes": 98304,
     "pdfVersion": "1.7",
     "linearized": true,
-    "downloadUrl": "https://api.pdfcanon.io/api/artifacts/ddeeff00..."
+    "downloadUrl": "https://api.pdfcanon.com/api/artifacts/ddeeff00..."
   },
   "security": {
     "javascriptRemoved": true,
@@ -201,7 +201,7 @@ import TabItem from '@theme/TabItem';
 <TabItem value="curl" label="cURL">
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -F "file=@input.pdf" \
   -F "linearize=true"
@@ -210,7 +210,7 @@ curl -X POST https://api.pdfcanon.io/api/normalize \
 To skip linearization:
 
 ```bash
-curl -X POST https://api.pdfcanon.io/api/normalize \
+curl -X POST https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   -F "file=@input.pdf" \
   -F "linearize=false"
@@ -227,7 +227,7 @@ const form = new FormData();
 form.append('file', readFileSync('input.pdf'), 'input.pdf');
 form.append('linearize', 'true');
 
-const response = await fetch('https://api.pdfcanon.io/api/normalize', {
+const response = await fetch('https://api.pdfcanon.com/api/normalize', {
   method: 'POST',
   headers: {
     'X-Api-Key': process.env.PDFCANON_API_KEY,
@@ -252,7 +252,7 @@ import httpx
 
 with open("input.pdf", "rb") as f:
     resp = httpx.post(
-        "https://api.pdfcanon.io/api/normalize",
+        "https://api.pdfcanon.com/api/normalize",
         headers={"X-Api-Key": "pdfn_your_api_key_here"},
         files={"file": ("input.pdf", f, "application/pdf")},
         data={"linearize": "true"},
@@ -278,7 +278,7 @@ using var form = new MultipartFormDataContent();
 form.Add(new ByteArrayContent(pdf) { Headers = { ContentType = new("application/pdf") } }, "file", "input.pdf");
 form.Add(new StringContent("true"), "linearize");
 
-var response = await client.PostAsync("https://api.pdfcanon.io/api/normalize", form);
+var response = await client.PostAsync("https://api.pdfcanon.com/api/normalize", form);
 response.EnsureSuccessStatusCode();
 
 var result = await response.Content.ReadFromJsonAsync<NormalizeResponse>();
@@ -307,7 +307,7 @@ String linearizePart = "\r\n--PDFCanonBoundary\r\n" +
 
 HttpClient client = HttpClient.newHttpClient();
 HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.pdfcanon.io/api/normalize"))
+    .uri(URI.create("https://api.pdfcanon.com/api/normalize"))
     .header("X-Api-Key", "pdfn_your_api_key_here")
     .header("Content-Type", "multipart/form-data; boundary=PDFCanonBoundary")
     .POST(HttpRequest.BodyPublishers.ofByteArrays(java.util.List.of(
@@ -348,7 +348,7 @@ func main() {
     w.WriteField("linearize", "true")
     w.Close()
 
-    req, _ := http.NewRequest("POST", "https://api.pdfcanon.io/api/normalize", &buf)
+    req, _ := http.NewRequest("POST", "https://api.pdfcanon.com/api/normalize", &buf)
     req.Header.Set("X-Api-Key", "pdfn_your_api_key_here")
     req.Header.Set("Content-Type", w.FormDataContentType())
 
