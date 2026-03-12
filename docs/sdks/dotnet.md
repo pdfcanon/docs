@@ -38,7 +38,7 @@ Console.WriteLine($"Processing time: {result.ProcessingTimeMs}ms");
 var client = new PdfCanonClient(new PdfCanonOptions
 {
     ApiKey = "pdfn_your_api_key_here",
-    BaseUrl = "https://api.pdfcanon.io",   // default
+    BaseUrl = "https://api.pdfcanon.com",   // default
     TimeoutSeconds = 120,                    // default
 });
 ```

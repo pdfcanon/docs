@@ -11,7 +11,7 @@ Retrieve the full submission record for a normalization job by its submission ID
 ## Request
 
 ```
-GET https://api.pdfcanon.io/api/submissions/{submissionId}
+GET https://api.pdfcanon.com/api/submissions/{submissionId}
 ```
 
 ### Path parameters
@@ -40,7 +40,7 @@ GET https://api.pdfcanon.io/api/submissions/{submissionId}
   "processingTimeMs": 342,
   "outputHash": "sha256:ddeeff...",
   "outputSizeBytes": 98304,
-  "downloadUrl": "https://api.pdfcanon.io/api/artifacts/ddeeff...",
+  "downloadUrl": "https://api.pdfcanon.com/api/artifacts/ddeeff...",
   "warnings": []
 }
 ```

@@ -13,7 +13,7 @@ PDFCanon uses two authentication schemes depending on the endpoint group.
 All normalization and artifact retrieval endpoints require an API key passed via the `X-Api-Key` header.
 
 ```bash
-curl https://api.pdfcanon.io/api/normalize \
+curl https://api.pdfcanon.com/api/normalize \
   -H "X-Api-Key: pdfn_your_api_key_here" \
   ...
 ```
@@ -50,12 +50,12 @@ Portal management endpoints (`/api/portal/*`) require a JWT Bearer token obtaine
 
 ```bash
 # Obtain a token
-curl -X POST https://api.pdfcanon.io/api/auth/login \
+curl -X POST https://api.pdfcanon.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "you@example.com", "password": "..."}'
 
 # Use the token
-curl https://api.pdfcanon.io/api/portal/usage \
+curl https://api.pdfcanon.com/api/portal/usage \
   -H "Authorization: Bearer eyJ..."
 ```
 

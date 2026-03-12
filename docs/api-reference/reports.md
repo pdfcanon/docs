@@ -11,7 +11,7 @@ Retrieve the full normalization pipeline report for a given output content hash.
 ## Request
 
 ```
-GET https://api.pdfcanon.io/api/reports/{hash}
+GET https://api.pdfcanon.com/api/reports/{hash}
 ```
 
 ### Path parameters

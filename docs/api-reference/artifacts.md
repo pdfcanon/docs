@@ -11,7 +11,7 @@ Download a normalized PDF artifact by its SHA-256 content hash. Artifacts are de
 ## Request
 
 ```
-GET https://api.pdfcanon.io/api/artifacts/{hash}
+GET https://api.pdfcanon.com/api/artifacts/{hash}
 ```
 
 ### Path parameters
