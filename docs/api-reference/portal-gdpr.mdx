@@ -1,0 +1,154 @@
+---
+sidebar_position: 11
+title: Portal — GDPR
+description: GDPR compliance endpoints for data export and erasure.
+---
+
+# Portal — GDPR
+
+GDPR compliance endpoints supporting **Article 17** (Right to Erasure) and **Article 20** (Right to Data Portability).
+
+All endpoints require JWT bearer authentication.
+
+## Data export (Article 20)
+
+### POST /api/portal/data-export
+
+Request an export of all your organization's data. The export is generated asynchronously as a content-addressed S3 archive.
+
+```
+POST https://api.pdfcanon.com/api/portal/data-export
+```
+
+### Response — 202 Accepted
+
+```json
+{
+  "exportId": "e1f2a3b4-c5d6-7890-abcd-ef1234567890",
+  "status": "pending",
+  "requestedAt": "2026-01-15T10:00:00Z"
+}
+```
+
+### GET /api/portal/data-export/\{id\}/status
+
+Check the status of a data export request.
+
+```
+GET https://api.pdfcanon.com/api/portal/data-export/{id}/status
+```
+
+### Response — 200 OK
+
+```json
+{
+  "exportId": "e1f2a3b4-...",
+  "status": "completed",
+  "requestedAt": "2026-01-15T10:00:00Z",
+  "completedAt": "2026-01-15T10:05:00Z"
+}
+```
+
+### GET /api/portal/data-export/\{id\}/download
+
+Download the completed export archive via a presigned URL.
+
+```
+GET https://api.pdfcanon.com/api/portal/data-export/{id}/download
+```
+
+### Response — 302 Found
+
+Redirects to a presigned S3 URL for the export archive.
+
+### Error responses
+
+| Status | Description                        |
+| ------ | ---------------------------------- |
+| `400`  | Export is not yet complete          |
+| `404`  | Export request not found            |
+
+---
+
+## Content erasure (Article 17)
+
+### POST /api/portal/erasure
+
+Request erasure of all stored PDF artifacts (originals, normalized outputs, reports) for your organization. Content references are tracked across organizations to ensure shared content is only deleted when no other organization references it.
+
+```
+POST https://api.pdfcanon.com/api/portal/erasure
+```
+
+### Response — 200 OK
+
+```json
+{
+  "status": "scheduled",
+  "message": "Content erasure has been scheduled."
+}
+```
+
+---
+
+## Account deletion (Article 17)
+
+### DELETE /api/portal/data
+
+Request full account deletion with a **72-hour cooling-off period**. During this period, the deletion can be cancelled. After the cooling-off period, the account and all associated data are permanently deleted.
+
+```
+DELETE https://api.pdfcanon.com/api/portal/data
+```
+
+### Response — 202 Accepted
+
+```json
+{
+  "status": "pending",
+  "cancellableUntil": "2026-01-18T10:00:00Z",
+  "message": "Account deletion scheduled. You have 72 hours to cancel."
+}
+```
+
+### GET /api/portal/data-deletion/status
+
+Check the status of a pending account deletion.
+
+```
+GET https://api.pdfcanon.com/api/portal/data-deletion/status
+```
+
+### Response — 200 OK
+
+```json
+{
+  "status": "pending",
+  "requestedAt": "2026-01-15T10:00:00Z",
+  "cancellableUntil": "2026-01-18T10:00:00Z"
+}
+```
+
+### DELETE /api/portal/data-deletion/cancel
+
+Cancel a pending account deletion (only during the 72-hour cooling-off period).
+
+```
+DELETE https://api.pdfcanon.com/api/portal/data-deletion/cancel
+```
+
+### Response — 200 OK
+
+```json
+{
+  "status": "cancelled",
+  "message": "Account deletion has been cancelled."
+}
+```
+
+### Error responses
+
+| Status | Description                                |
+| ------ | ------------------------------------------ |
+| `400`  | Cooling-off period has expired             |
+| `404`  | No pending deletion request found          |

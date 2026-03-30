@@ -18,20 +18,23 @@ POST https://api.pdfcanon.com/api/normalize
 
 ### Headers
 
-| Header | Required | Description |
-|---|---|---|
-| `X-Api-Key` | ✅ | Your API key (`pdfn_...`) |
+| Header      | Required | Description               |
+| ----------- | -------- | ------------------------- |
+| `X-Api-Key` | ✅       | Your API key (`pdfn_...`) |
 
 ### Form fields
 
-| Field | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `file` | binary | ✅ | — | The PDF file to normalize |
-| `linearize` | boolean | No | `true` | Linearize (web-optimize) the output PDF. Set `false` to skip. |
-| `remove_annotations` | boolean | No | `false` | Remove all PDF annotations |
-| `region` | string | No | org default | Target S3 storage region (`ca-central-1`, `us-east-2`, `eu-central-1`) |
-| `webhook_url` | string (uri) | No | — | Optional HTTPS URL to receive a completion webhook |
-| `idempotency_key` | string | No | — | Client-supplied idempotency key for safe retries |
+| Field                | Type         | Required | Default     | Description                                                                |
+| -------------------- | ------------ | -------- | ----------- | -------------------------------------------------------------------------- |
+| `file`               | binary       | ✅       | —           | The PDF file to normalize                                                  |
+| `linearize`          | boolean      | No       | `true`      | Linearize (web-optimize) the output PDF. Set `false` to skip.              |
+| `remove_annotations` | boolean      | No       | `false`     | Remove all PDF annotations                                                 |
+| `signed_pdf_policy`  | string       | No       | `reject`    | How to handle signed PDFs: `reject`, `strip`, or `preserve`                |
+| `pdfa_policy`        | string       | No       | `preserve`  | How to handle PDF/A documents: `preserve` or `normalize_anyway`            |
+| `region`             | string       | No       | org default | Target storage region (`ca-central-1`, `us-east-2`, `eu-central-1`)        |
+| `webhook_url`        | string (uri) | No       | —           | Optional HTTPS URL to receive a completion webhook                         |
+| `idempotency_key`    | string       | No       | —           | Client-supplied idempotency key for safe retries (max 255 chars, 24h TTL)  |
+| `batch_id`           | uuid         | No       | —           | Associate this submission with an existing batch                           |
 
 ## Responses
 
@@ -45,11 +48,11 @@ Returns a [`NormalizeResponse`](#normalizeresponse-schema) JSON object with `sta
 
 ### Error responses
 
-| Status | Description |
-|---|---|
-| `400` | Validation error or invalid/disallowed region |
-| `401` | Invalid or missing API key |
-| `402` | Monthly quota exceeded |
+| Status | Description                                   |
+| ------ | --------------------------------------------- |
+| `400`  | Validation error or invalid/disallowed region |
+| `401`  | Invalid or missing API key                    |
+| `402`  | Monthly quota exceeded                        |
 
 ## NormalizeResponse schema
 
@@ -68,6 +71,7 @@ NormalizeResponse
 │   ├── sizeBytes     int64
 │   ├── pdfVersion    string       e.g. "1.7"
 │   ├── linearized    boolean      whether output was linearized (web-optimized)
+│   ├── contentHash   string (nullable)  SHA-256 of extracted text (null for image-only PDFs)
 │   └── downloadUrl   string (uri) presigned URL to download the artifact
 ├── security          SecurityInfo  (what was removed)
 │   ├── javascriptRemoved          boolean
@@ -78,13 +82,32 @@ NormalizeResponse
 │   ├── incrementalUpdatesRemoved  boolean
 │   ├── acroformFlattened          boolean
 │   ├── annotationsRemoved         boolean
-│   └── encryptedInput             boolean  (was the original encrypted?)
+│   ├── encryptedInput             boolean  (was the original encrypted?)
+│   ├── digitalSignaturesDetected  boolean
+│   ├── digitalSignaturesRemoved   boolean
+│   ├── signatureCount             int
+│   ├── signatureVerificationResults[]  SignatureVerification
+│   │   ├── fieldName              string
+│   │   ├── signerName             string (nullable)  Distinguished Name from certificate
+│   │   ├── signedAt               datetime (nullable)
+│   │   ├── valid                  boolean
+│   │   ├── certificateExpired     boolean
+│   │   ├── certificateChainTrusted boolean (nullable)
+│   │   ├── timestampPresent       boolean
+│   │   ├── timestampValid         boolean (nullable)
+│   │   └── reason                 string (nullable)
+│   └── overallSignatureStatus     enum   ALL_VALID | SOME_INVALID | NONE
 ├── validation        ValidationInfo  (structural repair)
 │   ├── xrefRebuilt                boolean
 │   ├── objectStreamsRegenerated   boolean
 │   ├── brokenReferencesDetected  boolean
 │   ├── nonEmbeddedFontsDetected  boolean
-│   └── pdfaCompliant              boolean
+│   ├── pdfaDeclared               boolean  (did the input claim PDF/A?)
+│   ├── pdfaLevel                  string (nullable)  e.g. "2b", "1a"
+│   ├── pdfaPreserved              boolean  (was PDF/A compliance maintained?)
+│   ├── pdfaCompliant              boolean  (is the output PDF/A compliant?)
+│   ├── verapdfValidated           boolean (nullable)  (was veraPDF validation run?)
+│   └── verapdfErrors[]            string   ISO 19005 clause violations, if any
 ├── tamperAnalysis    TamperAnalysis  (nullable — null until processing completes)
 │   ├── riskLevel     enum         none | low | medium | high | critical
 │   ├── anomaliesDetected  int
@@ -122,6 +145,7 @@ NormalizeResponse
     "sizeBytes": 98304,
     "pdfVersion": "1.7",
     "linearized": true,
+    "contentHash": "ff00aabb...",
     "downloadUrl": "https://api.pdfcanon.com/api/artifacts/ddeeff00..."
   },
   "security": {
@@ -133,14 +157,24 @@ NormalizeResponse
     "incrementalUpdatesRemoved": true,
     "acroformFlattened": false,
     "annotationsRemoved": false,
-    "encryptedInput": false
+    "encryptedInput": false,
+    "digitalSignaturesDetected": false,
+    "digitalSignaturesRemoved": false,
+    "signatureCount": 0,
+    "signatureVerificationResults": [],
+    "overallSignatureStatus": "NONE"
   },
   "validation": {
     "xrefRebuilt": false,
     "objectStreamsRegenerated": true,
     "brokenReferencesDetected": false,
     "nonEmbeddedFontsDetected": true,
-    "pdfaCompliant": false
+    "pdfaDeclared": false,
+    "pdfaLevel": null,
+    "pdfaPreserved": false,
+    "pdfaCompliant": false,
+    "verapdfValidated": null,
+    "verapdfErrors": []
   },
   "tamperAnalysis": {
     "riskLevel": "high",
@@ -220,17 +254,17 @@ curl -X POST https://api.pdfcanon.com/api/normalize \
 <TabItem value="node" label="Node.js">
 
 ```javascript
-import { readFileSync } from 'fs';
-import FormData from 'form-data';
+import { readFileSync } from "fs";
+import FormData from "form-data";
 
 const form = new FormData();
-form.append('file', readFileSync('input.pdf'), 'input.pdf');
-form.append('linearize', 'true');
+form.append("file", readFileSync("input.pdf"), "input.pdf");
+form.append("linearize", "true");
 
-const response = await fetch('https://api.pdfcanon.com/api/normalize', {
-  method: 'POST',
+const response = await fetch("https://api.pdfcanon.com/api/normalize", {
+  method: "POST",
   headers: {
-    'X-Api-Key': process.env.PDFCANON_API_KEY,
+    "X-Api-Key": process.env.PDFCANON_API_KEY,
     ...form.getHeaders(),
   },
   body: form,
@@ -239,9 +273,9 @@ const response = await fetch('https://api.pdfcanon.com/api/normalize', {
 if (!response.ok) throw new Error(`Normalization failed: ${response.status}`);
 
 const result = await response.json();
-console.log('Status:', result.status);
-console.log('Tamper risk:', result.tamperAnalysis?.riskLevel ?? 'n/a');
-console.log('Download URL:', result.normalized?.downloadUrl);
+console.log("Status:", result.status);
+console.log("Tamper risk:", result.tamperAnalysis?.riskLevel ?? "n/a");
+console.log("Download URL:", result.normalized?.downloadUrl);
 ```
 
 </TabItem>

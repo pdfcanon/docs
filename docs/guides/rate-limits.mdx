@@ -12,14 +12,16 @@ PDFCanon enforces rate limits on authentication and normalization endpoints to p
 
 The `POST /api/normalize` endpoint is subject to a **tier-based monthly document quota** rather than a per-second rate limit.
 
-| Plan | Monthly normalization limit |
-|---|---|
-| Free | 50 documents |
-| Starter | 500 documents |
-| Growth | 5,000 documents |
-| Pro | 50,000 documents |
+| Plan | Monthly limit | Max file size | Concurrent jobs | Price (monthly) | Overage rate |
+|---|---|---|---|---|---|
+| Free | 100 documents | 5 MB | 1 | $0 | Hard block |
+| Starter | 10,000 documents | 25 MB | 5 | $99/mo | $0.010/doc |
+| Growth | 50,000 documents | 50 MB | 10 | $249/mo | $0.005/doc |
+| Pro | 200,000 documents | 100 MB | 20 | $499/mo | $0.003/doc |
 
-When the quota is exhausted, the endpoint returns `402 Payment Required`. The quota resets at the start of each billing cycle.
+Annual billing is available at a 2-month discount (pay for 10 months).
+
+When the quota is exhausted, Free-tier organizations are hard-blocked (`402 Payment Required`). Paid plans continue processing with overage charges applied per document. The quota resets at the start of each billing cycle.
 
 Check your current usage at any time with [GET /api/billing/info](/api-reference/portal-billing#get-apibillinginfo).
 

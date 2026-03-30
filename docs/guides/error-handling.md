@@ -10,14 +10,19 @@ PDFCanon uses structured error responses and a defined failure taxonomy to make 
 
 ## Error response format
 
-All API errors return a JSON body with a `type`, `title`, `status`, and optional `detail` field:
+All API errors return a JSON body with an `error` object containing specific fields:
 
 ```json
 {
-  "type": "https://docs.pdfcanon.com/errors/quota-exceeded",
-  "title": "Monthly quota exceeded",
-  "status": 429,
-  "detail": "Your organization has used all 500 normalizations for this billing period."
+  "error": {
+    "type": "QUOTA_EXCEEDED",
+    "code": "QUOTA_EXCEEDED",
+    "message": "Your organization has used all 500 normalizations for this billing period.",
+    "plan_tier": "Starter",
+    "monthly_limit": 500,
+    "current_usage": 500,
+    "upgrade_url": "/portal/billing"
+  }
 }
 ```
 

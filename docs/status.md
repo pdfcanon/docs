@@ -16,10 +16,10 @@ You can subscribe to email or webhook notifications for status changes at [statu
 
 ## Components monitored
 
-| Component | Description |
-|---|---|
-| API | `api.pdfcanon.com` — normalization and portal endpoints |
-| Worker fleet | PDF normalization processing workers |
-| Storage | Artifact storage (S3-compatible, multi-region) |
-| Portal | `app.pdfcanon.com` — web dashboard |
-| Docs | `docs.pdfcanon.com` — this documentation site |
+| Component    | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| API          | `api.pdfcanon.com` — normalization and portal endpoints    |
+| Worker fleet | PDF normalization processing workers                       |
+| Storage      | Artifact storage (Object Storage-compatible, multi-region) |
+| Portal       | `app.pdfcanon.com` — web dashboard                         |
+| Docs         | `docs.pdfcanon.com` — this documentation site              |

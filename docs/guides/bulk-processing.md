@@ -80,5 +80,6 @@ def backoff_delay(attempt):
 
 ## Next steps
 
+- [Batch API](/api-reference/batches) — Group submissions into trackable batches
 - [Idempotency](/guides/idempotency) — Idempotency key details
 - [Error Handling](/guides/error-handling) — Failure taxonomy and retry strategy

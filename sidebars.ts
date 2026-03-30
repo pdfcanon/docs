@@ -40,10 +40,22 @@ const sidebars: SidebarsConfig = {
         'api-reference/submissions',
         'api-reference/artifacts',
         'api-reference/reports',
+        'api-reference/batches',
+        'api-reference/certificates',
         'api-reference/auth',
         'api-reference/portal-api-keys',
         'api-reference/portal-billing',
         'api-reference/portal-organization',
+        {
+          type: 'category',
+          label: 'Portal',
+          items: [
+            'api-reference/portal-webhooks',
+            'api-reference/portal-team',
+            'api-reference/portal-gdpr',
+            'api-reference/portal-stats',
+          ],
+        },
       ],
     },
     {

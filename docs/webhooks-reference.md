@@ -12,8 +12,9 @@ Complete reference for PDFCanon webhook events, payload schemas, and HMAC signat
 
 | Event | Description |
 |---|---|
-| `normalization.completed` | A normalization job completed successfully |
-| `normalization.failed` | A normalization job failed with a permanent error |
+| `normalization.success` | A normalization job completed successfully |
+| `normalization.failure` | A normalization job failed with a permanent error |
+| `normalization.rejected` | A normalization job was rejected by policy (e.g. signed PDF with reject policy) |
 
 ## Payload schema
 
@@ -21,7 +22,7 @@ All webhook events share a common envelope:
 
 ```json
 {
-  "event": "normalization.completed",
+  "event": "normalization.success",
   "webhookId": "wh_01jk...",
   "timestamp": "2026-01-15T12:35:00Z",
   "apiVersion": "2026-01-01",
@@ -29,17 +30,17 @@ All webhook events share a common envelope:
 }
 ```
 
-### `normalization.completed` payload
+### `normalization.success` payload
 
 ```json
 {
-  "event": "normalization.completed",
+  "event": "normalization.success",
   "webhookId": "wh_01jk...",
   "timestamp": "2026-01-15T12:35:00Z",
   "apiVersion": "2026-01-01",
   "data": {
     "submissionId": "sub_01jk...",
-    "status": "completed",
+    "status": "SUCCESS",
     "processingTimeMs": 342,
     "outputHash": "sha256:ddeeff...",
     "outputSizeBytes": 98304,
@@ -49,21 +50,41 @@ All webhook events share a common envelope:
 }
 ```
 
-### `normalization.failed` payload
+### `normalization.failure` payload
 
 ```json
 {
-  "event": "normalization.failed",
+  "event": "normalization.failure",
   "webhookId": "wh_01jk...",
   "timestamp": "2026-01-15T12:35:00Z",
   "apiVersion": "2026-01-01",
   "data": {
     "submissionId": "sub_01jk...",
-    "status": "failed",
+    "status": "FAILED",
     "processingTimeMs": 89,
     "error": {
       "type": "CORRUPT_UNRECOVERABLE",
       "message": "PDF structure is too corrupted to repair"
+    }
+  }
+}
+```
+
+### `normalization.rejected` payload
+
+```json
+{
+  "event": "normalization.rejected",
+  "webhookId": "wh_01jk...",
+  "timestamp": "2026-01-15T12:35:01Z",
+  "apiVersion": "2026-01-01",
+  "data": {
+    "submissionId": "sub_01jk...",
+    "status": "REJECTED",
+    "processingTimeMs": 12,
+    "error": {
+      "type": "SIGNED_PDF",
+      "message": "PDF contains digital signatures which would be invalidated by normalization."
     }
   }
 }
@@ -140,6 +161,6 @@ After 5 failed attempts, the webhook is marked as failed and no further retries 
 |---|---|
 | `Content-Type` | `application/json` |
 | `X-PDFCanon-Signature` | HMAC-SHA256 signature (hex) |
-| `X-PDFCanon-Event` | Event type (e.g. `normalization.completed`) |
+| `X-PDFCanon-Event` | Event type (e.g. `normalization.success`) |
 | `X-PDFCanon-Webhook-Id` | Webhook delivery ID |
 | `X-PDFCanon-Api-Version` | API version string |

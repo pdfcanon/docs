@@ -24,7 +24,7 @@ After the retention period, PDFCanon deletes submission records, artifact files,
 Enable **stateless mode** to instruct PDFCanon not to persist any input or output files after normalization. In stateless mode:
 
 - The normalized PDF is returned only in the synchronous response
-- No artifact files are stored in S3
+- No artifact files are stored in Object Storage
 - Submission records contain only metadata (no content references)
 - Webhooks are not triggered (no async mode)
 

@@ -1,0 +1,114 @@
+---
+sidebar_position: 10
+title: Portal — Team
+description: Team member management endpoints.
+---
+
+# Portal — Team
+
+Manage team members within your organization. Roles control access levels: **owner**, **admin**, and **member**.
+
+All endpoints require JWT bearer authentication.
+
+## GET /api/portal/team
+
+List all team members in your organization.
+
+```
+GET https://api.pdfcanon.com/api/portal/team
+```
+
+### Response — 200 OK
+
+```json
+[
+  {
+    "id": "u1a2b3c4-d5e6-7890-abcd-ef1234567890",
+    "email": "alice@example.com",
+    "role": "owner",
+    "isActive": true,
+    "emailVerified": true,
+    "createdAt": "2026-01-01T00:00:00Z",
+    "lastLoginAt": "2026-01-15T09:00:00Z"
+  },
+  {
+    "id": "u2b3c4d5-e6f7-8901-bcde-f12345678901",
+    "email": "bob@example.com",
+    "role": "member",
+    "isActive": true,
+    "emailVerified": true,
+    "createdAt": "2026-01-05T00:00:00Z",
+    "lastLoginAt": "2026-01-14T14:30:00Z"
+  }
+]
+```
+
+## POST /api/portal/team/invite
+
+Invite a new team member by email. The invite link expires after 48 hours.
+
+```
+POST https://api.pdfcanon.com/api/portal/team/invite
+```
+
+### Request body (JSON)
+
+| Field   | Type   | Required | Description                                       |
+| ------- | ------ | -------- | ------------------------------------------------- |
+| `email` | string | ✅       | Email address of the person to invite              |
+| `role`  | string | ✅       | Role to assign: `admin` or `member`                |
+
+### Response — 200 OK
+
+### Error responses
+
+| Status | Description                                                  |
+| ------ | ------------------------------------------------------------ |
+| `400`  | Invalid email or role                                        |
+| `409`  | User is already a member of the organization                 |
+
+## DELETE /api/portal/team/\{userId\}
+
+Remove a team member from your organization.
+
+```
+DELETE https://api.pdfcanon.com/api/portal/team/{userId}
+```
+
+### Path parameters
+
+| Parameter | Type | Description                |
+| --------- | ---- | -------------------------- |
+| `userId`  | uuid | ID of the member to remove |
+
+### Response — 200 OK
+
+### Error responses
+
+| Status | Description                                |
+| ------ | ------------------------------------------ |
+| `400`  | Cannot remove the organization owner       |
+| `404`  | User not found in organization             |
+
+## PUT /api/portal/team/\{userId\}/role
+
+Change a team member's role.
+
+```
+PUT https://api.pdfcanon.com/api/portal/team/{userId}/role
+```
+
+### Request body (JSON)
+
+| Field  | Type   | Required | Description                             |
+| ------ | ------ | -------- | --------------------------------------- |
+| `role` | string | ✅       | New role: `owner`, `admin`, or `member` |
+
+### Response — 200 OK
+
+### Error responses
+
+| Status | Description                                   |
+| ------ | --------------------------------------------- |
+| `400`  | Invalid role or cannot change own role         |
+| `404`  | User not found in organization                |

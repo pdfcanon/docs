@@ -1,0 +1,121 @@
+---
+sidebar_position: 9
+title: Portal — Webhooks
+description: Manage webhook endpoints for normalization event delivery.
+---
+
+# Portal — Webhooks
+
+Manage webhook endpoints that receive normalization event notifications. Maximum 10 webhooks per organization.
+
+All endpoints require JWT bearer authentication.
+
+## GET /api/portal/webhooks
+
+List all configured webhooks for your organization.
+
+```
+GET https://api.pdfcanon.com/api/portal/webhooks
+```
+
+### Response — 200 OK
+
+```json
+[
+  {
+    "id": "c1d2e3f4-a5b6-7890-abcd-ef1234567890",
+    "url": "https://your-app.com/webhooks/pdfcanon",
+    "events": ["normalization.success", "normalization.failure", "normalization.rejected"],
+    "active": true,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "lastDeliveryAt": "2026-01-15T12:35:00Z"
+  }
+]
+```
+
+## POST /api/portal/webhooks
+
+Create a new webhook endpoint. The signing secret is generated server-side and returned in the response (shown only once).
+
+```
+POST https://api.pdfcanon.com/api/portal/webhooks
+```
+
+### Request body (JSON)
+
+| Field    | Type     | Required | Default | Description                                                                           |
+| -------- | -------- | -------- | ------- | ------------------------------------------------------------------------------------- |
+| `url`    | string   | ✅       | —       | HTTPS endpoint URL (HTTP allowed in development only)                                  |
+| `events` | string[] | ✅       | —       | Events to subscribe to: `normalization.success`, `normalization.failure`, `normalization.rejected` |
+| `active` | boolean  | No       | `true`  | Whether the webhook is active                                                          |
+
+### Response — 201 Created
+
+```json
+{
+  "id": "c1d2e3f4-a5b6-7890-abcd-ef1234567890",
+  "url": "https://your-app.com/webhooks/pdfcanon",
+  "events": ["normalization.success", "normalization.failure"],
+  "active": true,
+  "createdAt": "2026-01-10T08:00:00Z",
+  "lastDeliveryAt": null
+}
+```
+
+:::note
+The signing secret is returned only in the creation response. Store it securely — it cannot be retrieved later. See [Webhooks Reference](/webhooks-reference) for HMAC verification details.
+:::
+
+## PUT /api/portal/webhooks/\{id\}
+
+Update an existing webhook's URL, events, or active status.
+
+```
+PUT https://api.pdfcanon.com/api/portal/webhooks/{id}
+```
+
+### Request body (JSON)
+
+| Field    | Type     | Required | Description                        |
+| -------- | -------- | -------- | ---------------------------------- |
+| `url`    | string   | No       | New HTTPS endpoint URL             |
+| `events` | string[] | No       | Updated event subscriptions        |
+| `active` | boolean  | No       | Enable or disable the webhook      |
+
+### Response — 200 OK
+
+Returns the updated `WebhookConfigResponse`.
+
+## DELETE /api/portal/webhooks/\{id\}
+
+Delete a webhook endpoint.
+
+```
+DELETE https://api.pdfcanon.com/api/portal/webhooks/{id}
+```
+
+### Response — 200 OK
+
+## GET /api/portal/webhooks/dead
+
+List webhook deliveries that failed all retry attempts (dead-letter queue).
+
+```
+GET https://api.pdfcanon.com/api/portal/webhooks/dead
+```
+
+### Response — 200 OK
+
+Returns a list of failed webhook delivery records with original event data.
+
+## POST /api/portal/webhooks/\{eventId\}/replay
+
+Re-attempt delivery of a dead-letter webhook event.
+
+```
+POST https://api.pdfcanon.com/api/portal/webhooks/{eventId}/replay
+```
+
+### Response — 200 OK
+
+The event is re-queued for delivery with a fresh retry sequence.

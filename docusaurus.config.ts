@@ -7,7 +7,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'PDFCanon Docs',
   tagline: 'PDF normalization, built for developers.',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.svg',
 
   future: {
     v4: true,
@@ -39,7 +39,7 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/napzoom/PDFCanon/tree/main/docs-site/',
+          editUrl: 'https://github.com/pdfcanon/docs/tree/main/',
         },
         blog: false,
         theme: {
@@ -88,7 +88,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/napzoom/PDFCanon',
+          href: 'https://github.com/pdfcanon',
           label: 'GitHub',
           position: 'right',
         },
@@ -130,7 +130,7 @@ const config: Config = {
           items: [
             {label: 'Dashboard', href: 'https://app.pdfcanon.com'},
             {label: 'pdfcanon.com', href: 'https://pdfcanon.com'},
-            {label: 'GitHub', href: 'https://github.com/napzoom/PDFCanon'},
+            {label: 'GitHub', href: 'https://github.com/pdfcanon'},
           ],
         },
       ],

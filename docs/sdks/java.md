@@ -47,11 +47,47 @@ Files.write(Path.of("normalized.pdf"), result.getOutputBytes());
 System.out.println("Output hash: " + result.getOutputHash());
 ```
 
-## Async support
+## Normalization options
 
 ```java
+NormalizeResult result = client.normalize(pdf, NormalizeOptions.builder()
+    .removeAnnotations(true)
+    .signedPdfPolicy("strip")        // "reject" (default) | "strip" | "preserve"
+    .pdfaPolicy("preserve")          // "preserve" (default) | "normalize_anyway"
+    .linearize(true)                 // default
+    .region("ca-central-1")
+    .webhookUrl("https://example.com/hook")
+    .idempotencyKey("my-unique-key")
+    .batchId("a1b2c3d4-...")
+    .build()
+);
+```
+
+## Async submission and polling
+
+```java
+// Async submission
 CompletableFuture<NormalizeResult> future = client.normalizeAsync(pdf);
 NormalizeResult result = future.get();
+
+// Poll by submission ID
+NormalizeResult status = client.getSubmission(result.getSubmissionId());
+
+// Wait for completion
+NormalizeResult finalResult = client.waitForCompletion(result.getSubmissionId());
+```
+
+## Artifacts and reports
+
+```java
+// Download normalized PDF
+byte[] pdfBytes = client.getArtifact(result.getOutputHash());
+
+// Download full pipeline report (JSON)
+Map<String, Object> report = client.getReport(result.getOutputHash());
+
+// Download JWS attestation certificate
+byte[] cert = client.getCertificate(result.getOutputHash());
 ```
 
 ## Error handling
@@ -70,4 +106,4 @@ try {
 
 ## Source
 
-SDK source code: [`sdks/java/`](https://github.com/napzoom/PDFCanon/tree/main/sdks/java)
+SDK source code: [github.com/pdfcanon/sdk-java](https://github.com/pdfcanon/sdk-java)

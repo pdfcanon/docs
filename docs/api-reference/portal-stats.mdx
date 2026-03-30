@@ -1,0 +1,70 @@
+---
+sidebar_position: 12
+title: Portal — Stats
+description: Organization usage statistics endpoint.
+---
+
+# Portal — Stats
+
+Retrieve usage statistics and recent submission activity for your organization.
+
+Requires JWT bearer authentication.
+
+## GET /api/portal/stats
+
+```
+GET https://api.pdfcanon.com/api/portal/stats
+```
+
+### Response — 200 OK
+
+```json
+{
+  "allTime": {
+    "total": 12450,
+    "success": 11890,
+    "failed": 310,
+    "rejected": 250
+  },
+  "currentMonth": {
+    "total": 1530,
+    "success": 1480,
+    "failed": 30,
+    "rejected": 20
+  },
+  "planLimit": 10000,
+  "usedThisMonth": 1530,
+  "usageLimitPercent": 15.3,
+  "averageProcessingMs": 287,
+  "recentSubmissions": [
+    {
+      "submissionId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "status": "SUCCESS",
+      "createdAt": "2026-01-15T12:35:00Z",
+      "completedAt": "2026-01-15T12:35:01Z"
+    },
+    {
+      "submissionId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "status": "FAILED",
+      "createdAt": "2026-01-15T12:30:00Z",
+      "completedAt": "2026-01-15T12:30:02Z"
+    }
+  ]
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|---|---|---|
+| `allTime` | object | Cumulative counts since the organization was created |
+| `allTime.total` | integer | Total submissions across all time |
+| `allTime.success` | integer | Successfully normalized documents |
+| `allTime.failed` | integer | Documents that failed normalization |
+| `allTime.rejected` | integer | Documents rejected by policy |
+| `currentMonth` | object | Counts for the current billing period |
+| `planLimit` | integer | Monthly document quota for the current plan |
+| `usedThisMonth` | integer | Documents processed this billing period |
+| `usageLimitPercent` | number | Percentage of monthly quota consumed |
+| `averageProcessingMs` | integer (nullable) | Average processing time in milliseconds (null if no data) |
+| `recentSubmissions` | array | Most recent submissions with status and timestamps |

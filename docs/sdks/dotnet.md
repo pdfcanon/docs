@@ -43,12 +43,45 @@ var client = new PdfCanonClient(new PdfCanonOptions
 });
 ```
 
-## Async mode
+## Normalization options
+
+```csharp
+var result = await client.NormalizeAsync("input.pdf", new NormalizeOptions
+{
+    RemoveAnnotations = true,
+    SignedPdfPolicy = "strip",       // "reject" (default) | "strip" | "preserve"
+    PdfaPolicy = "preserve",         // "preserve" (default) | "normalize_anyway"
+    Linearize = true,                // default
+    Region = "ca-central-1",
+    WebhookUrl = "https://example.com/hook",
+    IdempotencyKey = "my-unique-key",
+    BatchId = Guid.Parse("a1b2c3d4-..."),
+});
+```
+
+## Async submission and polling
 
 ```csharp
 var submission = await client.SubmitAsync("large.pdf");
-// Poll for completion
+
+// Poll by submission ID
+var status = await client.GetSubmissionAsync(submission.SubmissionId);
+
+// Wait for completion (blocks up to timeout)
 var result = await client.WaitForCompletionAsync(submission.SubmissionId);
+```
+
+## Artifacts and reports
+
+```csharp
+// Download the normalized PDF
+byte[] pdf = await client.GetArtifactAsync(result.OutputHash);
+
+// Download the full pipeline report (JSON)
+var report = await client.GetReportAsync(result.OutputHash);
+
+// Download the JWS attestation certificate
+byte[] cert = await client.GetCertificateAsync(result.OutputHash);
 ```
 
 ## Error handling
@@ -72,4 +105,4 @@ catch (PdfCanonException ex)
 
 ## Source
 
-SDK source code: [`sdks/dotnet/`](https://github.com/napzoom/PDFCanon/tree/main/sdks/dotnet)
+SDK source code: [github.com/pdfcanon/sdk-dotnet](https://github.com/pdfcanon/sdk-dotnet)

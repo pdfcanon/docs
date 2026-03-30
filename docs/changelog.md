@@ -27,7 +27,7 @@ PDFCanon uses date-based API versioning. Breaking changes are introduced only in
 - Idempotency key support
 - Async mode (`Prefer: respond-async`)
 - Stateless mode (`X-Stateless: true`)
-- Webhook events: `normalization.completed`, `normalization.failed`
+- Webhook events: `normalization.success`, `normalization.failure`, `normalization.rejected`
 - Multi-region artifact storage (ca-central-1, us-east-2, eu-central-1)
 - GDPR: data export, content erasure, account deletion with cooling-off period
 

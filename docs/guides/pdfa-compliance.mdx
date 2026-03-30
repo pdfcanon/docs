@@ -61,7 +61,7 @@ If normalization would break PDF/A compliance, the response is:
 
 ## PDF/A compliance in the response
 
-The `validation.pdfaCompliant` field in `NormalizeResponse` reflects whether the output passed internal compliance checks:
+The `validation` object in `NormalizeResponse` includes PDF/A-specific fields:
 
 ```json
 {
@@ -70,14 +70,28 @@ The `validation.pdfaCompliant` field in `NormalizeResponse` reflects whether the
     "objectStreamsRegenerated": true,
     "brokenReferencesDetected": false,
     "nonEmbeddedFontsDetected": false,
-    "pdfaCompliant": true
+    "pdfaCompliant": true,
+    "pdfaDeclared": "PDF/A-2b",
+    "pdfaLevel": "2b",
+    "pdfaPreserved": true,
+    "verapdfValidated": true,
+    "verapdfErrors": []
   }
 }
 ```
 
+| Field | Type | Description |
+|---|---|---|
+| `pdfaCompliant` | boolean | Whether internal compliance checks passed |
+| `pdfaDeclared` | string or null | Declared PDF/A level from XMP metadata (e.g. `"PDF/A-2b"`) |
+| `pdfaLevel` | string or null | Short conformance level (e.g. `"2b"`) |
+| `pdfaPreserved` | boolean | Whether PDF/A compliance was preserved through normalization |
+| `verapdfValidated` | boolean | Whether veraPDF validation was run |
+| `verapdfErrors` | array | Any veraPDF validation errors found |
+
 ## veraPDF validation
 
-For plans that include veraPDF integration, post-normalization PDF/A validation is run using the veraPDF open-source validator (MPL 2.0). Results are reflected in the submission record. Contact support for details on veraPDF-enabled plans.
+For any normalize request where the PDF is successfully verified as PDF/A compliant, post-normalization PDF/A validation is run using the veraPDF open-source validator (MPL 2.0). Results are reflected in the submission record.
 
 ## Relationship with tamper detection
 

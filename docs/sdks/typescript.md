@@ -32,12 +32,75 @@ console.log(`Output hash: ${result.outputHash}`);
 console.log(`Processing time: ${result.processingTimeMs}ms`);
 ```
 
-## Async / webhook mode
+## Configuration
+
+```typescript
+const client = new PdfCanonClient({
+  apiKey: 'pdfn_your_api_key_here',
+  baseUrl: 'https://api.pdfcanon.com',  // default
+  connectTimeout: 5000,                  // ms, default
+  readTimeout: 120000,                   // ms, default
+  maxRetries: 3,                         // default
+});
+```
+
+## Normalization options
+
+```typescript
+const result = await client.normalize(pdf, 'input.pdf', {
+  removeAnnotations: true,
+  signedPdfPolicy: 'strip',       // 'reject' (default) | 'strip' | 'preserve'
+  pdfaPolicy: 'preserve',         // 'preserve' (default) | 'normalize_anyway'
+  linearize: true,                // default
+  region: 'ca-central-1',
+  webhookUrl: 'https://example.com/hook',
+  idempotencyKey: 'my-unique-key',
+  batchId: 'a1b2c3d4-...',
+});
+```
+
+## Async submission and polling
 
 ```typescript
 const submission = await client.submit(pdf);
-// Use webhooks or poll:
+
+// Poll by submission ID
+const status = await client.getSubmission(submission.submissionId);
+
+// Wait for completion (blocks up to timeout)
 const result = await client.waitForCompletion(submission.submissionId);
+```
+
+## Artifacts and reports
+
+```typescript
+// Download the normalized PDF
+const pdfBytes: Buffer = await client.getArtifact(result.outputHash);
+
+// Download the full pipeline report (JSON)
+const report = await client.getReport(result.outputHash);
+
+// Download the JWS attestation certificate
+const cert: Buffer = await client.getCertificate(result.outputHash);
+```
+
+## Batch operations
+
+```typescript
+// Create a batch
+const batch = await client.createBatch('Q1 migration');
+
+// Submit with batch ID
+const result = await client.normalize(pdf, 'doc.pdf', { batchId: batch.id });
+
+// Check batch progress
+const status = await client.getBatch(batch.id);
+
+// List batches
+const batches = await client.listBatches('open', 1, 20);
+
+// List submissions in a batch
+const subs = await client.listBatchSubmissions(batch.id, 1, 20);
 ```
 
 ## Error handling
@@ -58,4 +121,4 @@ try {
 
 ## Source
 
-SDK source code: [`sdks/node/`](https://github.com/napzoom/PDFCanon/tree/main/sdks/node)
+SDK source code: [github.com/pdfcanon/sdk-node](https://github.com/pdfcanon/sdk-node)

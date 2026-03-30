@@ -11,7 +11,7 @@ The PDFCanon Go SDK provides a client for the PDFCanon API compatible with Go 1.
 ## Installation
 
 ```bash
-go get github.com/napzoom/pdfcanon-go
+go get github.com/pdfcanon/pdfcanon-go
 ```
 
 ## Quickstart
@@ -24,7 +24,7 @@ import (
     "fmt"
     "os"
 
-    pdfcanon "github.com/napzoom/pdfcanon-go"
+    pdfcanon "github.com/pdfcanon/pdfcanon-go"
 )
 
 func main() {
@@ -48,7 +48,22 @@ func main() {
 }
 ```
 
-## Async mode
+## Normalization options
+
+```go
+result, err := client.Normalize(ctx, pdf, &pdfcanon.NormalizeOptions{
+    RemoveAnnotations: true,
+    SignedPdfPolicy:   "strip",       // "reject" (default) | "strip" | "preserve"
+    PdfaPolicy:        "preserve",    // "preserve" (default) | "normalize_anyway"
+    Linearize:         pdfcanon.Bool(true),
+    Region:            "ca-central-1",
+    WebhookURL:        "https://example.com/hook",
+    IdempotencyKey:    "my-unique-key",
+    BatchID:           "a1b2c3d4-...",
+})
+```
+
+## Async submission and polling
 
 ```go
 submission, err := client.Submit(ctx, pdf)
@@ -56,8 +71,40 @@ if err != nil {
     panic(err)
 }
 
-// Poll for completion
+// Poll by submission ID
+status, err := client.GetSubmission(ctx, submission.SubmissionID)
+
+// Wait for completion
 result, err := client.WaitForCompletion(ctx, submission.SubmissionID)
+```
+
+## Artifacts and reports
+
+```go
+// Download normalized PDF
+pdfBytes, err := client.GetArtifact(ctx, result.OutputHash)
+
+// Download full pipeline report (JSON)
+report, err := client.GetReport(ctx, result.OutputHash)
+
+// Download JWS attestation certificate
+certBytes, err := client.GetCertificate(ctx, result.OutputHash)
+```
+
+## Batch operations
+
+```go
+// Create a batch
+batch, err := client.CreateBatch(ctx, "Q1 migration", "")
+
+// Check batch progress
+batch, err = client.GetBatch(ctx, batch.ID)
+
+// List batches
+batches, err := client.ListBatches(ctx, "open", 1, 20)
+
+// List submissions in a batch
+subs, err := client.ListBatchSubmissions(ctx, batch.ID, 1, 20)
 ```
 
 ## Error handling
@@ -76,4 +123,4 @@ if err != nil {
 
 ## Source
 
-SDK source code: [`sdks/go/`](https://github.com/napzoom/PDFCanon/tree/main/sdks/go)
+SDK source code: [github.com/pdfcanon/pdfcanon-go](https://github.com/pdfcanon/pdfcanon-go)

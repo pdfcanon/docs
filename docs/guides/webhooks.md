@@ -18,28 +18,37 @@ curl -X POST https://api.pdfcanon.com/api/portal/webhooks \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://your-app.com/webhooks/pdfcanon",
-    "events": ["normalization.completed", "normalization.failed"],
-    "secret": "your_webhook_secret"
+    "events": ["normalization.success", "normalization.failure", "normalization.rejected"]
   }'
 ```
+
+The webhook secret is generated server-side and returned in the response. You do not supply it yourself.
 
 ## Event types
 
 | Event | Description |
 |---|---|
-| `normalization.completed` | A normalization job completed successfully |
-| `normalization.failed` | A normalization job failed |
+| `normalization.success` | A normalization job completed successfully |
+| `normalization.failure` | A normalization job failed with a permanent error |
+| `normalization.rejected` | A normalization job was rejected by policy |
 
 ## Payload format
 
 ```json
 {
-  "event": "normalization.completed",
+  "event": "normalization.success",
+  "webhookId": "wh_01jk...",
   "timestamp": "2026-01-15T12:34:56Z",
-  "submissionId": "sub_01jk...",
-  "outputHash": "sha256:abcd1234...",
-  "status": "completed",
-  "processingTimeMs": 342
+  "apiVersion": "2026-01-01",
+  "data": {
+    "submissionId": "sub_01jk...",
+    "status": "SUCCESS",
+    "processingTimeMs": 342,
+    "outputHash": "sha256:abcd1234...",
+    "outputSizeBytes": 98304,
+    "downloadUrl": "https://api.pdfcanon.com/api/artifacts/abcd1234...",
+    "warnings": []
+  }
 }
 ```
 
