@@ -29,19 +29,19 @@ POST https://api.pdfcanon.com/api/batches
 | Field         | Type   | Required | Description                                      |
 | ------------- | ------ | -------- | ------------------------------------------------ |
 | `name`        | string | No       | Human-readable batch name                        |
-| `webhookUrl`  | string | No       | HTTPS URL for batch-level completion notifications |
+| `webhook_url` | string | No       | HTTPS URL for batch-level completion notifications |
 
 ### Response — 201 Created
 
 ```json
 {
-  "id": "b1c2d3e4-f5a6-7890-abcd-ef1234567890",
+  "batchId": "b1c2d3e4-f5a6-7890-abcd-ef1234567890",
   "name": "Q1 migration",
-  "webhookUrl": "https://example.com/batch-hook",
   "status": "open",
-  "totalCount": 0,
-  "successCount": 0,
-  "failedCount": 0,
+  "total": 0,
+  "completed": 0,
+  "failed": 0,
+  "rejected": 0,
   "createdAt": "2026-01-15T10:00:00Z"
 }
 ```
@@ -51,16 +51,16 @@ POST https://api.pdfcanon.com/api/batches
 List batches with optional filtering and pagination.
 
 ```
-GET https://api.pdfcanon.com/api/batches?status=open&page=1&pageSize=20
+GET https://api.pdfcanon.com/api/batches?status=open&page=1&page_size=20
 ```
 
 ### Query parameters
 
-| Parameter  | Type    | Default | Description                              |
-| ---------- | ------- | ------- | ---------------------------------------- |
-| `status`   | string  | —       | Filter by status: `open` or `closed`     |
-| `page`     | integer | `1`     | Page number (1-based)                    |
-| `pageSize` | integer | `20`    | Results per page (max 100)               |
+| Parameter   | Type    | Default | Description                              |
+| ----------- | ------- | ------- | ---------------------------------------- |
+| `status`    | string  | —       | Filter by status: `open`, `in_progress`, or `complete` |
+| `page`      | integer | `1`     | Page number (1-based)                    |
+| `page_size` | integer | `20`    | Results per page (max 100)               |
 
 ### Response — 200 OK
 
@@ -68,18 +68,18 @@ GET https://api.pdfcanon.com/api/batches?status=open&page=1&pageSize=20
 {
   "items": [
     {
-      "id": "b1c2d3e4-...",
+      "batchId": "b1c2d3e4-...",
       "name": "Q1 migration",
       "status": "open",
-      "totalCount": 150,
-      "successCount": 142,
-      "failedCount": 3,
+      "total": 150,
+      "completed": 142,
+      "failed": 3,
+      "rejected": 1,
       "createdAt": "2026-01-15T10:00:00Z"
     }
   ],
   "page": 1,
-  "pageSize": 20,
-  "totalCount": 5
+  "page_size": 20
 }
 ```
 
@@ -95,13 +95,13 @@ GET https://api.pdfcanon.com/api/batches/{batchId}
 
 ```json
 {
-  "id": "b1c2d3e4-f5a6-7890-abcd-ef1234567890",
+  "batchId": "b1c2d3e4-f5a6-7890-abcd-ef1234567890",
   "name": "Q1 migration",
-  "webhookUrl": "https://example.com/batch-hook",
   "status": "open",
-  "totalCount": 150,
-  "successCount": 142,
-  "failedCount": 3,
+  "total": 150,
+  "completed": 142,
+  "failed": 3,
+  "rejected": 1,
   "createdAt": "2026-01-15T10:00:00Z"
 }
 ```
@@ -117,15 +117,15 @@ GET https://api.pdfcanon.com/api/batches/{batchId}
 List submissions within a batch with pagination.
 
 ```
-GET https://api.pdfcanon.com/api/batches/{batchId}/submissions?page=1&pageSize=20
+GET https://api.pdfcanon.com/api/batches/{batchId}/submissions?page=1&page_size=20
 ```
 
 ### Query parameters
 
-| Parameter  | Type    | Default | Description                |
-| ---------- | ------- | ------- | -------------------------- |
-| `page`     | integer | `1`     | Page number (1-based)      |
-| `pageSize` | integer | `20`    | Results per page (max 100) |
+| Parameter   | Type    | Default | Description                |
+| ----------- | ------- | ------- | -------------------------- |
+| `page`      | integer | `1`     | Page number (1-based)      |
+| `page_size` | integer | `20`    | Results per page (max 100) |
 
 ### Response — 200 OK
 
