@@ -23,7 +23,7 @@ PDFCanon uses date-based API versioning. Breaking changes are introduced only in
 
 - 10-stage normalization pipeline (PDF/A detection through content hash)
 - Tamper detection: incremental-update injection, shadow content, post-EOF data, header version mismatch, orphaned signature fields
-- veraPDF validation (when PDF/A declared and policy = `preserve`)
+- PDF/A validation (when PDF/A declared and policy = `preserve`)
 - Idempotency key support
 - Async mode (`Prefer: respond-async`)
 - Stateless mode (`X-Stateless: true`)

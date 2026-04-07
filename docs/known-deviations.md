@@ -22,12 +22,12 @@ If your workflow requires signature preservation, set `digitalSignaturePolicy: p
 
 ## PDF/A compliance
 
-### veraPDF validation is best-effort
+### PDF/A validation is best-effort
 
-PDFCanon targets PDF/A-2b output. For documents declared as PDF/A, veraPDF validation is run after normalization. However:
+PDFCanon targets PDF/A-2b output. For documents declared as PDF/A, PDF/A validation is run after normalization. However:
 
-- veraPDF may report errors for edge cases in complex documents
-- veraPDF validation failures do not cause the normalization job to fail (they are recorded as warnings)
+- The validator may report errors for edge cases in complex documents
+- PDF/A validation failures do not cause the normalization job to fail (they are recorded as warnings)
 - The `verapdf` section of the report includes any errors found
 
 ## Font handling
@@ -59,6 +59,7 @@ Set `acroFormPolicy: preserve` to keep form fields interactive.
 ### Output may be larger than input
 
 Normalization can increase file size due to:
+
 - Font subset embedding (previously missing fonts)
 - Metadata normalization (XMP packet expansion)
 - Linearization overhead
