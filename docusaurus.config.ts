@@ -41,7 +41,11 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/pdfcanon/docs/tree/main/',
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          blogSidebarTitle: 'All Posts',
+          blogSidebarCount: 'ALL',
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -80,6 +84,11 @@ const config: Config = {
         {
           to: '/changelog',
           label: 'Changelog',
+          position: 'left',
+        },
+        {
+          to: '/blog',
+          label: 'Blog',
           position: 'left',
         },
         {
