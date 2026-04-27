@@ -43,4 +43,4 @@ The current stable API version is `2026-01-01`. All responses include an `apiVer
 
 - **Status page** — [status.pdfcanon.com](https://status.pdfcanon.com)
 - **Dashboard** — [app.pdfcanon.com](https://app.pdfcanon.com)
-- **GitHub** — [github.com/napzoom/PDFCanon](https://github.com/PDFCanon)
+- **GitHub** — [github.com/PDFCanon](https://github.com/PDFCanon)

@@ -86,11 +86,11 @@ const config: Config = {
           label: 'Changelog',
           position: 'left',
         },
-        {
-          to: '/blog',
-          label: 'Blog',
-          position: 'left',
-        },
+        // {
+        //   to: '/blog',
+        //   label: 'Blog',
+        //   position: 'left',
+        // },
         {
           href: 'https://app.pdfcanon.com',
           label: 'Dashboard',
