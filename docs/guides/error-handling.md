@@ -8,6 +8,10 @@ description: Failure taxonomy, error codes, and retry strategies.
 
 PDFCanon uses structured error responses and a defined failure taxonomy to make errors actionable.
 
+:::tip Hash stability
+If you're correlating errors with re-normalizations across time, also include the [`toolchainVersion`](/concepts/toolchain-version) from each response. Re-runs under a different toolchain version may produce a different canonical hash by design.
+:::
+
 ## Error response format
 
 All API errors return a JSON body with an `error` object containing specific fields:

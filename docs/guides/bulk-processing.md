@@ -8,6 +8,10 @@ description: Concurrency guidance and migration scripts for processing large PDF
 
 This guide covers best practices for processing large volumes of PDFs with PDFCanon.
 
+:::tip Store the toolchain version
+For bulk and migration workloads, store the `(canonical_sha256, toolchainVersion)` pair for every output. See [Toolchain versioning](/concepts/toolchain-version) for the stability contract and re-normalization strategy.
+:::
+
 ## Concurrency model
 
 PDFCanon processes jobs in parallel on its worker fleet. From the client side, you can submit multiple requests concurrently. Recommended concurrency limits by tier:

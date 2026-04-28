@@ -46,6 +46,9 @@ curl https://api.pdfcanon.com/api/reports/{outputHash} \
 
 ## Next steps
 
+- [Why normalize PDFs?](/concepts/why-normalize) — Background on what the pipeline actually does
+- [The normalization pipeline](/concepts/pipeline) — All 11 stages, visualized
+- [Toolchain versioning](/concepts/toolchain-version) — The stability contract behind every hash
 - [Authentication](/authentication) — Learn about API key scopes and rotation
 - [Normalizing PDFs](/guides/normalizing-pdfs) — Deep dive into the normalization pipeline
 - [Webhooks](/guides/webhooks) — Receive async notifications when jobs complete

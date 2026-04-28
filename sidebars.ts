@@ -8,6 +8,15 @@ const sidebars: SidebarsConfig = {
       label: 'Overview',
     },
     {
+      type: 'category',
+      label: 'Concepts',
+      items: [
+        'concepts/why-normalize',
+        'concepts/pipeline',
+        'concepts/toolchain-version',
+      ],
+    },
+    {
       type: 'doc',
       id: 'quickstart',
       label: 'Quickstart',

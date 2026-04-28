@@ -9,13 +9,26 @@ description: PDFCanon developer documentation — PDF normalization for producti
 
 PDFCanon is a PDF normalization API that converts any PDF into a canonical, tamper-evident, PDF/A-compliant document. Use the REST API, official SDKs, or the MCP server to integrate normalization into your workflow.
 
+```mermaid
+flowchart LR
+    Upload([Upload PDF]) --> Normalize[Normalize<br/>11 stages]
+    Normalize --> Hash[Canonical SHA-256<br/>+ content hash]
+    Hash --> Store[(Store<br/>region-pinned)]
+    Store --> Webhook[Webhook<br/>delivery]
+```
+
 ## Get started
 
+- [**Why normalize PDFs?**](/concepts/why-normalize) — The problem PDFCanon solves
 - [**Quickstart**](/quickstart) — Normalize your first PDF in under 5 minutes
 - [**Authentication**](/authentication) — API keys and auth headers
 - [**API Reference**](/api-reference/normalize) — Full endpoint reference
 
 ## Core concepts
+
+- [**Why normalize PDFs?**](/concepts/why-normalize) — Why two identical PDFs produce different hashes
+- [**The normalization pipeline**](/concepts/pipeline) — Visual overview of all 11 stages
+- [**Toolchain versioning**](/concepts/toolchain-version) — The stability contract behind every hash
 
 PDFCanon normalizes PDFs by running them through a deterministic 11-stage pipeline:
 
