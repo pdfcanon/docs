@@ -8,6 +8,10 @@ description: Normalize a PDF document.
 
 Normalize a PDF document through the PDFCanon pipeline. Returns a structured result object with full schema details about the normalization, tamper analysis, security changes, and validation.
 
+:::tip
+For the full list of error codes this endpoint can return (`FILE_TOO_LARGE`, `ENCRYPTED_PDF`, `UNSUPPORTED_PDF_VERSION`, etc.), see the [Errors Reference](/api-reference/errors).
+:::
+
 ## Request
 
 ```

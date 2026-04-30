@@ -1,0 +1,208 @@
+---
+sidebar_position: 2
+title: Quickstart
+description: Normalize your first PDF in under 5 minutes.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Quickstart
+
+Normalize your first PDF in under 5 minutes using the PDFCanon API or one of the official SDKs.
+
+## Prerequisites
+
+- A PDFCanon account — [sign up at app.pdfcanon.com](https://app.pdfcanon.com)
+- An API key from the **API Keys** section of the portal
+- `curl` or one of the SDKs below
+
+## Step 1 — Get your API key
+
+Navigate to **app.pdfcanon.com → API Keys** and create a new key. Copy the key value — it starts with `pdfn_`.
+
+Set it in your environment so the SDKs can pick it up automatically:
+
+```bash
+export PDFCANON_API_KEY=pdfn_your_api_key_here
+```
+
+## Step 2 — Normalize a PDF
+
+<Tabs groupId="sdk" queryString>
+<TabItem value="curl" label="cURL" default>
+
+```bash
+curl -X POST https://api.pdfcanon.com/api/normalize \
+  -H "X-Api-Key: $PDFCANON_API_KEY" \
+  -H "Content-Type: application/pdf" \
+  --data-binary @input.pdf \
+  -o normalized.pdf
+```
+
+If normalization succeeds, `normalized.pdf` contains the canonical output and the response headers include the submission metadata.
+
+</TabItem>
+<TabItem value="dotnet" label=".NET">
+
+```bash
+dotnet add package PDFCanon
+```
+
+```csharp
+using PDFCanon;
+
+using var client = new PDFCanonClient(); // reads PDFCANON_API_KEY
+
+var response = await client.NormalizeAsync("input.pdf");
+Console.WriteLine($"Status: {response.Status}");
+Console.WriteLine($"Submission ID: {response.SubmissionId}");
+
+if (response.Normalized?.Sha256 is { } sha256)
+{
+    var bytes = await client.GetArtifactAsync(sha256);
+    await File.WriteAllBytesAsync("normalized.pdf", bytes);
+}
+```
+
+</TabItem>
+<TabItem value="node" label="Node.js">
+
+```bash
+npm install @pdfcanon/sdk
+```
+
+```typescript
+import { PDFCanonClient } from '@pdfcanon/sdk';
+import { readFileSync, writeFileSync } from 'node:fs';
+
+const client = new PDFCanonClient(); // reads PDFCANON_API_KEY
+
+const buffer = readFileSync('input.pdf');
+const response = await client.normalize(buffer, 'input.pdf');
+
+console.log('Status:', response.status);
+console.log('Submission ID:', response.submissionId);
+
+if (response.normalized?.sha256) {
+  const pdf = await client.downloadArtifact(response.normalized.sha256);
+  writeFileSync('normalized.pdf', pdf);
+}
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+pip install pdfcanon
+```
+
+```python
+from pdfcanon import PDFCanonClient
+
+client = PDFCanonClient()  # reads PDFCANON_API_KEY
+
+with open("input.pdf", "rb") as f:
+    response = client.normalize(f, file_name="input.pdf")
+
+print("Status:", response.status)
+print("Submission ID:", response.submission_id)
+
+if response.normalized:
+    pdf_bytes = client.download_artifact(response.normalized.sha256)
+    with open("normalized.pdf", "wb") as out:
+        out.write(pdf_bytes)
+```
+
+</TabItem>
+<TabItem value="java" label="Java">
+
+```xml
+<dependency>
+  <groupId>com.pdfcanon</groupId>
+  <artifactId>pdfcanon-sdk</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+```java
+import com.pdfcanon.PDFCanonClient;
+import com.pdfcanon.model.NormalizeResponse;
+import java.nio.file.*;
+
+PDFCanonClient client = new PDFCanonClient(); // reads PDFCANON_API_KEY
+
+NormalizeResponse response = client.normalize(Path.of("input.pdf"));
+System.out.println("Status: " + response.getStatus());
+System.out.println("Submission ID: " + response.getSubmissionId());
+
+if (response.getNormalized() != null) {
+    byte[] bytes = client.getArtifact(response.getNormalized().getSha256());
+    Files.write(Path.of("normalized.pdf"), bytes);
+}
+```
+
+</TabItem>
+<TabItem value="go" label="Go">
+
+```bash
+go get github.com/pdfcanon/pdfcanon-go
+```
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/pdfcanon/pdfcanon-go"
+)
+
+func main() {
+    client := pdfcanon.NewClient("") // reads PDFCANON_API_KEY
+
+    f, err := os.Open("input.pdf")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer f.Close()
+
+    resp, err := client.Normalize(context.Background(), f, "input.pdf", nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("Status:", resp.Status)
+    fmt.Println("Submission ID:", resp.SubmissionID)
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Step 3 — Retrieve the submission record
+
+```bash
+curl https://api.pdfcanon.com/api/submissions/{submissionId} \
+  -H "X-Api-Key: pdfn_your_api_key_here"
+```
+
+## Step 4 — (Optional) Fetch the normalization report
+
+```bash
+curl https://api.pdfcanon.com/api/reports/{outputHash} \
+  -H "X-Api-Key: pdfn_your_api_key_here"
+```
+
+## Next steps
+
+- [Why normalize PDFs?](/concepts/why-normalize) — Background on what the pipeline actually does
+- [The normalization pipeline](/concepts/pipeline) — All 11 stages, visualized
+- [Toolchain versioning](/concepts/toolchain-version) — The stability contract behind every hash
+- [Authentication](/authentication) — Learn about API key scopes and rotation
+- [Normalizing PDFs](/guides/normalizing-pdfs) — Deep dive into the normalization pipeline
+- [Webhooks](/guides/webhooks) — Receive async notifications when jobs complete
+- [SDKs](/sdks/dotnet) — Use an official SDK in your language

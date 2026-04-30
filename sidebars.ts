@@ -52,6 +52,7 @@ const sidebars: SidebarsConfig = {
         'api-reference/batches',
         'api-reference/certificates',
         'api-reference/auth',
+        'api-reference/errors',
         'api-reference/portal-api-keys',
         'api-reference/portal-billing',
         'api-reference/portal-organization',
